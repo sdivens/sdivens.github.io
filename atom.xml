@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://sdivens.github.io</id>
     <title>Gridea</title>
-    <updated>2020-03-19T03:40:44.057Z</updated>
+    <updated>2020-03-19T06:16:40.747Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://sdivens.github.io"/>
     <link rel="self" href="https://sdivens.github.io/atom.xml"/>
@@ -10,6 +10,120 @@
     <logo>https://sdivens.github.io/images/avatar.png</logo>
     <icon>https://sdivens.github.io/favicon.ico</icon>
     <rights>All rights reserved 2020, Gridea</rights>
+    <entry>
+        <title type="html"><![CDATA[线程中止的几种方式]]></title>
+        <id>https://sdivens.github.io/post/thread-interrupt/</id>
+        <link href="https://sdivens.github.io/post/thread-interrupt/">
+        </link>
+        <updated>2020-03-19T06:13:18.000Z</updated>
+        <summary type="html"><![CDATA[<p>欢迎来到java多线程的世界</p>
+<p>让我们一起学习,研究java多线程和高并发知识吧</p>
+]]></summary>
+        <content type="html"><![CDATA[<p>欢迎来到java多线程的世界</p>
+<p>让我们一起学习,研究java多线程和高并发知识吧</p>
+<!-- more -->
+<p>我们已经知道了线程的<a href="https://sdivens.github.io/post/threadStatus">6种状态</a>,现在我们在说一下终止线程的几种方式</p>
+<ol>
+<li>stop(<strong>不建议</strong>)</li>
+<li>interrupt</li>
+<li>标志位</li>
+</ol>
+<p>我们先说stop</p>
+<h1 id="stop">stop</h1>
+<p>stop是终止线程的一种方法</p>
+<p>调用stop会终止一个线程并且清除监视器锁的信息,但是可能<strong>导致线程安全问题</strong>,JDK不建议使用,为什么不建议使用?因为它破坏了synchronized的原子性,我们来验证一下</p>
+<p>我们先定义一个线程</p>
+<pre><code class="language-java">public class StopThread extends Thread {
+    private int i = 0, j = 0;
+
+    @Override
+    public void run() {
+        synchronized (this) {
+            // 增加同步锁，确保线程安全
+            ++i;
+            try {
+                // 休眠10秒,模拟耗时操作
+                Thread.sleep(10000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            ++j;
+        }
+    }
+
+    /** * 打印i和j */
+    public void print() {
+        System.out.println(&quot;i=&quot; + i + &quot; j=&quot; + j);
+    }
+}
+</code></pre>
+<p>在这个线程中,我们定义了一个同步代码块,主要是进行<code>++i</code>和<code>++j</code>操作,而且这两个操作是原子性的,要么都成功,要么都失败</p>
+<p>现在我们用另一个线程来启动这个线程</p>
+<pre><code class="language-java">public class ThreadStopDemo {
+    public static void main(String[] args) throws InterruptedException {
+        StopThread thread = new StopThread();
+        thread.start();
+        // 休眠1秒，确保i变量自增成功
+        Thread.sleep(1000);
+        // 暂停线程
+          thread.stop(); // 错误的终止
+        while (thread.isAlive()) {
+            // 确保线程已经终止
+        } // 输出结果
+        thread.print();
+    }
+}
+</code></pre>
+<p>这个运行的过程我们可以看一下这个示例图</p>
+<figure data-type="image" tabindex="1"><img src="https://sdivens.github.io/post-images/%E7%BB%88%E6%AD%A2%E7%BA%BF%E7%A8%8B/image-20200319134708307.png" alt="image-20200319134708307" loading="lazy"></figure>
+<p>ThreadStopDemo先启动一个StopThread线程,然后自己休眠1秒,这个时候StopThread开始执行<code>i++</code>,执行完<code>i++</code>之后,线程休眠10秒,一秒钟之后,StopThread主线程重新启动,调用<code>thread.stop()</code>停止thread线程,然后等待thread线程退出,StopThread线程收到停止线程的指令之后,清除监视器锁信息,退出线程,之后的<code>++j</code>不会得到执行.主线程通过循环判断<code>thread.isAlive()</code>知道Thread子线程退出,然后主线程退出</p>
+<p>这个过程中有个什么问题呢?我们要知道synchronized可以保证线程的安全,保证这个代码块的原子性,所以这个<code>i++</code>和这个<code>j++</code>应该要保证同时执行,要么都成功,要么都失败.所以预期的结果要么<code>i=j=0</code>或者<code>i=j=</code>1,但是在上述的整个过程中,线程终止破坏了这个原子性,因为<code>++i</code>执行了,但是<code>++j</code>却没有得到执行,所以最后运行的结果是<code>i = 1 j = 0</code>,所以我们说这种方式是破坏了synchronized的原子性</p>
+<p>那么我们在看第二种中断线程的方法</p>
+<h1 id="interrupt">interrupt</h1>
+<p>这是正确的线程中止,我们看interrupt以下的几个特点</p>
+<ol>
+<li>如果目标线程在调用Object类的wait(),wait(long),wait(long,int),join(),join(long,int)或sleep(long,int)方法时被阻塞,那么interrupt方法会生效,目标线程的中断状态将会被清除,同时目标以上方法抛出InterruptedException异常</li>
+<li>如果目标线程是被I/O或NIO中的Channel所阻塞,同样,I/O操作会被中断并且返回一个特殊的异常值,达到中止线程的目的</li>
+<li>如果以上条件都不满足,则会设置目标线程的中断状态</li>
+</ol>
+<p>上面那个例子,如果将<code>thread.stop()</code>改成<code>thread.interrupt()</code>,那么会捕获一个InterruptedException异常,然后会输出正确值<code>i = j = 1</code>,我们看一下改完之后的运行结果:</p>
+<pre><code>java.lang.InterruptedException: sleep interrupted
+	at java.lang.Thread.sleep(Native Method)
+	at com.zdw.demo.threadTest.StopThread.run(StopThread.java:13)
+i=1 j=1
+</code></pre>
+<p>我们在看第三种中止线程的方法</p>
+<h1 id="标志位">标志位</h1>
+<p>我们看代码</p>
+<pre><code class="language-java">/** 通过状态位来判断 */
+public class Demo4 extends Thread {
+  public volatile static boolean flag = true;
+
+  public static void main(String[] args) throws InterruptedException {
+    new Thread(() -&gt; {
+      try {
+        while (flag) { // 判断是否运行
+          System.out.println(&quot;运行中&quot;);
+          Thread.sleep(1000L);
+        }
+      } catch (InterruptedException e) {
+        e.printStackTrace();
+      }
+    }).start();
+    // 3秒之后，将状态标志改为False，代表不继续运行
+    Thread.sleep(3000L);
+    flag = false;
+    System.out.println(&quot;程序运行结束&quot;);
+  }
+}
+</code></pre>
+<p>我们在代码中有一个类成员变量<code>public volatile static boolean flag = true</code>,然后我们在线程中了判断这个值是否为true,如果是true,俺么继续运行我们的逻辑,如果不是true,就不会进入到while循环中,线程就会结束,从而达到了中止线程的目的,那么什么时候将这个flag设为false呢,上述例子中我们是在主线程中将flag设为false,从而可以在我们需要的时候中止目标线程的执行</p>
+<blockquote>
+<p>注意<code>public volatile static boolean flag = true</code>中的<code>volatile</code>关键字,他保证了线程之间共享变量的可见性,以后会说到这个关键字,如果没有这个关键字,子线程是不会停止的.可以自己尝试试一下,去掉这个关键字后的运行结果</p>
+</blockquote>
+<p>以上就是今天说的中止线程的几种方式</p>
+]]></content>
+    </entry>
     <entry>
         <title type="html"><![CDATA[文章目录]]></title>
         <id>https://sdivens.github.io/post/toc/</id>
@@ -26,6 +140,7 @@
 <h1 id="多线程并发编程">多线程并发编程</h1>
 <h2 id="线程介绍"><a href="https://sdivens.github.io/post/java-thread/">线程介绍</a></h2>
 <h2 id="线程的状态"><a href="https://sdivens.github.io/post/threadStatus">线程的状态</a></h2>
+<h2 id="线程中止的几种方式"><a href="https://sdivens.github.io/post/thread-interrupt">线程中止的几种方式</a></h2>
 ]]></content>
     </entry>
     <entry>
