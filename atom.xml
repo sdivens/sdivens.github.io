@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://sdivens.github.io</id>
     <title>Gridea</title>
-    <updated>2020-03-19T06:18:05.468Z</updated>
+    <updated>2020-03-19T09:11:07.707Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://sdivens.github.io"/>
     <link rel="self" href="https://sdivens.github.io/atom.xml"/>
@@ -10,6 +10,155 @@
     <logo>https://sdivens.github.io/images/avatar.png</logo>
     <icon>https://sdivens.github.io/favicon.ico</icon>
     <rights>All rights reserved 2020, Gridea</rights>
+    <entry>
+        <title type="html"><![CDATA[TCP&UDP协议]]></title>
+        <id>https://sdivens.github.io/post/internet-tcpandudp/</id>
+        <link href="https://sdivens.github.io/post/internet-tcpandudp/">
+        </link>
+        <updated>2020-03-19T09:01:54.000Z</updated>
+        <summary type="html"><![CDATA[<p>欢迎来到java网络知识的世界</p>
+<p>让我们一起学习,研究java高并发网络编程的知识吧</p>
+]]></summary>
+        <content type="html"><![CDATA[<p>欢迎来到java网络知识的世界</p>
+<p>让我们一起学习,研究java高并发网络编程的知识吧</p>
+<!-- more -->
+<h1 id="osi网络七层模型">OSI网络七层模型</h1>
+<h2 id="概念">概念</h2>
+<p>为了让不同计算机厂家的计算机能够互相通信,以便在更大范围内进行通信,有必要建立一个国际范围的网络体系结构标准</p>
+<p>网络七层模型是哪七层呢?从上到下分别是:</p>
+<ol>
+<li>应用层</li>
+<li>表示层</li>
+<li>会话层</li>
+<li>传输层</li>
+<li>网络层</li>
+<li>数据链路层</li>
+<li>物理层</li>
+</ol>
+<p>我们看以下示例图:</p>
+<figure data-type="image" tabindex="1"><img src="https://sdivens.github.io/post-images/TCPUDP%E5%8D%8F%E8%AE%AE/image-20200319142811887.png" alt="image-20200319142811887" loading="lazy"></figure>
+<p>这个是OSI网络七层模型</p>
+<h2 id="为什么要弄这七层模型呢">为什么要弄这七层模型呢</h2>
+<p>其中一个原因是可以每个层单独处理,比如做网线的,就只要处理物理层的内容,而不用关心整个的网络结构</p>
+<h2 id="各个层次的主要功能">各个层次的主要功能</h2>
+<p>首先是低三层,哪三层是低三层呢?</p>
+<h3 id="低三层">低三层</h3>
+<ol>
+<li>物理层</li>
+<li>数据链路层</li>
+<li>网络层</li>
+</ol>
+<p>物理层主要是使原始的数据比特流能够在物理介质上传输</p>
+<blockquote>
+<p>这句话的意思是怎么样才可以让电流,光等这些电信号,光信号能够在光纤的两端进行通信</p>
+</blockquote>
+<p>数据链路层主要是通过校验,确认,反馈,重发等手段,形成稳定的数据链路</p>
+<blockquote>
+<p>这句话的意思是,通过物理层发送的信号可能会有丢失等各种情况,数据链路层为了防止丢失数据还不知道,所以有数据校验,确认,反馈等,发送方如果确认数据丢失,需要重发等</p>
+</blockquote>
+<p>所以物理层和数据链路层主要是解决了两个端点之间(比如说一根网线的两端)的通信问题,那么我们说网络是有很多节点的</p>
+<figure data-type="image" tabindex="2"><img src="https://sdivens.github.io/post-images/TCPUDP%E5%8D%8F%E8%AE%AE/image-20200319144438330.png" alt="image-20200319144438330" loading="lazy"></figure>
+<p>那么像网络这么复杂的节点,A需要发送一个数据,那么怎么知道发送到哪个机器上去呢?这个就是网络层要解决的事情</p>
+<p>网络层提供了一个互联网之间数据链路上的<strong>逻辑链接</strong>,比如说IP协议,通过ip可以定位到正确的数据目的地,比如我们要发送一个数据,这个数据要发给谁?我们需要通过ip定位到这个目的的地址,从而通过网络层的技术,将一个节点的数据发送到另外一个节点</p>
+<blockquote>
+<p>如果我们要邮寄一封信件,我们需要在信上填写准确的收信地址(ip地址),然后给到邮局(服务器),通过邮局派发的送信员送到目的地,其中发送方是发件人,接收方是收件人,信息是信件,链路是公路或者乡村小路</p>
+</blockquote>
+<p>以上就是低三层,低三层的目的是为了<strong>屏蔽底层网络的复杂性</strong>,我们作为java开发等后端开发人员,是不需要太过于关注低三层</p>
+<h3 id="中间层">中间层</h3>
+<p>传输层是中间层,承上启下,主要提供了<strong>可靠的</strong> <strong>端口到端口的</strong>数据传输服务(TCP/UDP协议)</p>
+<p>我们说之前ip地址提供了网络之间访问到某个机器的地址,但是他没法提供具体的端口,TCP/TDP协议就是对具体传输层的定义,我们的网络应用大多是基于传输层开发的,所以了解传输层(TCP/UDP)对于我们开发网络应用是很有帮助的</p>
+<h3 id="高三层">高三层</h3>
+<ol>
+<li>会话层 负责建立,管理和终止进程之间的会话和数据交换</li>
+<li>表示层 负责数据格式转换,数据加密解密,压缩与解压缩等</li>
+<li>应用层 为用户的应用进程提供网络服务</li>
+</ol>
+<p>可以将这三层看成是一个应用层,比如HTPP服务器,他实现了高三层的功能</p>
+<p>比如说会话层是关闭连接和建立连接的过程,表示层是https或者md5等相关的处理,http本身也是一种协议,是基于tcp开发的针对于web服务的协议</p>
+<p>我们主要了解传输层与应用层</p>
+<h2 id="传输控制协议tcp">传输控制协议TCP</h2>
+<p>传输控制协议(TCP)提供了一个服务,这个服务有以下特点</p>
+<ol>
+<li>面向连接</li>
+<li>可靠</li>
+<li>有序</li>
+<li>字节流传输</li>
+</ol>
+<p>应用程序在使用TCP之前,必须先建立TCP连接,建立连接需要要一个tcp报文,报文结构如下:</p>
+<figure data-type="image" tabindex="3"><img src="https://sdivens.github.io/post-images/TCPUDP%E5%8D%8F%E8%AE%AE/image-20200319152117553.png" alt="image-20200319152117553" loading="lazy"></figure>
+<p>对于tcp连接需要有几个特点需要了解</p>
+<h3 id="三次握手">三次握手</h3>
+<p>三次握手的过程</p>
+<figure data-type="image" tabindex="4"><img src="https://sdivens.github.io/post-images/TCPUDP%E5%8D%8F%E8%AE%AE/image-20200319152657088.png" alt="image-20200319152657088" loading="lazy"></figure>
+<blockquote>
+<p>举个例子,A给B打电话,B接了之后</p>
+<p>A问:喂,你能听到吗?</p>
+<p>B回答:能,你那能听到吗?</p>
+<p>A回到:嗯,我这可以听到</p>
+<p>然后在说具体的事情,这个其实就是三次握手的过程</p>
+</blockquote>
+<h3 id="四次挥手">四次挥手</h3>
+<figure data-type="image" tabindex="5"><img src="https://sdivens.github.io/post-images/TCPUDP%E5%8D%8F%E8%AE%AE/image-20200319153849447.png" alt="image-20200319153849447" loading="lazy"></figure>
+<h2 id="用户数据报协议udp">用户数据报协议UDP</h2>
+<p>传输控制协议(UDP)提供了一个服务,这个服务有以下特点</p>
+<ol>
+<li>无连接</li>
+<li>不可靠</li>
+<li>数据报尽力传输</li>
+</ol>
+<p>报文结构如下:</p>
+<figure data-type="image" tabindex="6"><img src="https://sdivens.github.io/post-images/TCPUDP%E5%8D%8F%E8%AE%AE/image-20200319154239775.png" alt="image-20200319154239775" loading="lazy"></figure>
+<p>这个里边只有发送端端口号,接收端端口号,要发送的数据的长度,校验码,然后就是要发送的数据了</p>
+<p>如果在udp上构建应用程序,关注以下几点</p>
+<ol>
+<li>
+<p>应用进程更容易控制发送什么数据和什么时候发</p>
+<blockquote>
+<p>tcp建立连接需要一个过程,这个时间可长可短,数据准备好了不一定能马上发出去,udp数据准备好了就可以直接发送了</p>
+</blockquote>
+</li>
+<li>
+<p>无需建立连接</p>
+</li>
+<li>
+<p>吴连接状态</p>
+</li>
+<li>
+<p>首部开销小</p>
+<blockquote>
+<p>首部只有发送端端口号,接收端端口号,要发送的数据的长度,校验码,比tcp的小</p>
+</blockquote>
+</li>
+</ol>
+<h2 id="tcp和udp的比较">TCP和UDP的比较</h2>
+<figure data-type="image" tabindex="7"><img src="https://sdivens.github.io/post-images/TCPUDP%E5%8D%8F%E8%AE%AE/image-20200319154915219.png" alt="image-20200319154915219" loading="lazy"></figure>
+<p>TCP有这么多的有点,那么我们什么时候用UDP呢?</p>
+<p>使用udp是对于数据可靠性要求不高的时候或者要求实时性可以使用</p>
+<p>比如视频聊天,语音聊天,直播等,我们不关心以前做了什么,我们只关心现在做了什么,要求实时性</p>
+<p>同时视频偶尔丢包导致视频有点模糊我们也能接受,这种情况下丢失一些数据也没有关系</p>
+<p>再比如物联网开发上的一些日志上报等,比如摩拜单车的数据定位,偶尔丢一些包也没有大问题</p>
+<p>在这些场景下,我们可以使用udp协议,充分应用到udp的快速,占用资源少的一些特点</p>
+<h2 id="针对第四层的传输协议如何开发">针对第四层的传输协议如何开发</h2>
+<p>在了解java如何开发tcp客户端/服务端应用之前,我们还需要了解一个东西,那就是Socket编程</p>
+<h3 id="socket编程">Socket编程</h3>
+<h4 id="概念-2">概念</h4>
+<p>Socket编程是网络中应用最广泛的网络应用编程接口,实现3种底层协议接口,哪三种?</p>
+<ol>
+<li>数据报类型套接字SOCK_DGRAM(面向UDP接口)</li>
+<li>流式套接字SOCK_STREAM(面向tcp接口)</li>
+<li>原始套接字SOCK_RAW(面向网络层协议接口IP,ICMP等)</li>
+</ol>
+<p>这种编程接口在操作系统的底层已经帮我们实现了,不管什么语言的应用程序,只要在操作系统上去操作网络,用的都是这样统一的Socket编程接口, 不管是什么语言去建立网络连接,都需要经过这么一个流程:</p>
+<figure data-type="image" tabindex="8"><img src="https://sdivens.github.io/post-images/TCPUDP%E5%8D%8F%E8%AE%AE/image-20200319160202256.png" alt="image-20200319160202256" loading="lazy"></figure>
+<p>创建套接字,就是socket,然后绑定端口,不管是客户端还是服务端都会有端口绑定的过程,然后是发送数据,然后接受数据,最后端口连接</p>
+<h4 id="socket-api函数定义">Socket  API函数定义</h4>
+<ol>
+<li>listen(),accept() 只能用于服务端</li>
+<li>connect()只能用户客户端</li>
+<li>socket() bind() send() recv(),sendto() recvfrom(),close() 两端都可以用</li>
+</ol>
+]]></content>
+    </entry>
     <entry>
         <title type="html"><![CDATA[线程中止的几种方式]]></title>
         <id>https://sdivens.github.io/post/thread-interrupt/</id>
@@ -141,6 +290,9 @@ public class Demo4 extends Thread {
 <h2 id="线程介绍"><a href="https://sdivens.github.io/post/java-thread/">线程介绍</a></h2>
 <h2 id="线程的状态"><a href="https://sdivens.github.io/post/threadStatus">线程的状态</a></h2>
 <h2 id="线程中止的几种方式"><a href="https://sdivens.github.io/post/thread-interrupt">线程中止的几种方式</a></h2>
+<hr>
+<h1 id="高并发网络编程">高并发网络编程</h1>
+<h2 id="tcpudp协议"><a href="https://sdivens.github.io/post/internet-tcpandudp">TCP&amp;UDP协议</a></h2>
 ]]></content>
     </entry>
     <entry>
