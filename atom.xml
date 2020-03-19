@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://sdivens.github.io</id>
     <title>Gridea</title>
-    <updated>2020-03-19T03:31:36.364Z</updated>
+    <updated>2020-03-19T03:40:44.057Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://sdivens.github.io"/>
     <link rel="self" href="https://sdivens.github.io/atom.xml"/>
@@ -16,9 +16,15 @@
         <link href="https://sdivens.github.io/post/toc/">
         </link>
         <updated>2020-03-19T03:31:00.000Z</updated>
-        <content type="html"><![CDATA[<h1 id="首页"><a href="https://sdivens.github.io/">首页</a></h1>
+        <summary type="html"><![CDATA[<p>由于文章的顺序是按发布时间倒序的,所以为了方便顺序阅读,也为了方便查找文章,所以写了一个目录放在这<br>
+学习使人进步,生命不息,学习不止!让我们一同进步</p>
+]]></summary>
+        <content type="html"><![CDATA[<p>由于文章的顺序是按发布时间倒序的,所以为了方便顺序阅读,也为了方便查找文章,所以写了一个目录放在这<br>
+学习使人进步,生命不息,学习不止!让我们一同进步</p>
+<!-- more -->
+<h1 id="首页"><a href="https://sdivens.github.io/">首页</a></h1>
 <h1 id="多线程并发编程">多线程并发编程</h1>
-<h2 id="线程"><a href="https://sdivens.github.io/post/java-thread/">线程</a></h2>
+<h2 id="线程介绍"><a href="https://sdivens.github.io/post/java-thread/">线程介绍</a></h2>
 <h2 id="线程的状态"><a href="https://sdivens.github.io/post/threadStatus">线程的状态</a></h2>
 ]]></content>
     </entry>
@@ -28,7 +34,13 @@
         <link href="https://sdivens.github.io/post/threadStatus/">
         </link>
         <updated>2020-03-19T03:21:56.000Z</updated>
-        <content type="html"><![CDATA[<h1 id="线程的状态有哪些">线程的状态有哪些</h1>
+        <summary type="html"><![CDATA[<p>欢迎来到java多线程的世界<br>
+让我们一起学习,研究java多线程和高并发知识吧</p>
+]]></summary>
+        <content type="html"><![CDATA[<p>欢迎来到java多线程的世界<br>
+让我们一起学习,研究java多线程和高并发知识吧</p>
+<!-- more -->
+<h1 id="线程的状态有哪些">线程的状态有哪些</h1>
 <p><a href="https://sdivens.github.io/post/java-thread/">之前</a>中我们提到了线程有6个状态,是哪6个状态呢?</p>
 <ol>
 <li>NEW(创建)</li>
