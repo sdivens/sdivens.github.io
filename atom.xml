@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://sdivens.github.io</id>
     <title>Gridea</title>
-    <updated>2020-03-18T09:13:23.381Z</updated>
+    <updated>2020-03-19T03:31:36.364Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://sdivens.github.io"/>
     <link rel="self" href="https://sdivens.github.io/atom.xml"/>
@@ -10,6 +10,156 @@
     <logo>https://sdivens.github.io/images/avatar.png</logo>
     <icon>https://sdivens.github.io/favicon.ico</icon>
     <rights>All rights reserved 2020, Gridea</rights>
+    <entry>
+        <title type="html"><![CDATA[文章目录]]></title>
+        <id>https://sdivens.github.io/post/toc/</id>
+        <link href="https://sdivens.github.io/post/toc/">
+        </link>
+        <updated>2020-03-19T03:31:00.000Z</updated>
+        <content type="html"><![CDATA[<h1 id="首页"><a href="https://sdivens.github.io/">首页</a></h1>
+<h1 id="多线程并发编程">多线程并发编程</h1>
+<h2 id="线程"><a href="https://sdivens.github.io/post/java-thread/">线程</a></h2>
+<h2 id="线程的状态"><a href="https://sdivens.github.io/post/threadStatus">线程的状态</a></h2>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[线程的状态]]></title>
+        <id>https://sdivens.github.io/post/threadStatus/</id>
+        <link href="https://sdivens.github.io/post/threadStatus/">
+        </link>
+        <updated>2020-03-19T03:21:56.000Z</updated>
+        <content type="html"><![CDATA[<h1 id="线程的状态有哪些">线程的状态有哪些</h1>
+<p><a href="https://sdivens.github.io/post/java-thread/">之前</a>中我们提到了线程有6个状态,是哪6个状态呢?</p>
+<ol>
+<li>NEW(创建)</li>
+<li>RUNNABLE(可运行/就绪)</li>
+<li>BLOCK(阻塞)</li>
+<li>WAITING(等待)</li>
+<li>TIME WAITING(等待一定的时间)</li>
+<li>TERMINATED(终结)</li>
+</ol>
+<p>那么今天我们来具体介绍一下这6个状态以及状态之间的关系和转换</p>
+<h2 id="new">NEW</h2>
+<p>首先是线程的创建,<a href="https://sdivens.github.io/post/java-thread/">之前</a>我们已经说过线程是怎么创建的,线程创建之后的状态就是NEW的状态,这个是线程的初始状态</p>
+<h2 id="runnable">RUNNABLE</h2>
+<p><a href="https://sdivens.github.io/post/java-thread/">之前</a>我们也说过RUNNABLE是线程创建之后调用线程的start()方法,然后就会进入Runnable状态,这个状态不是线程的运行状态,而是告诉cup当前状态是可运行的,等待CPU有时间来启动这个线程执行线程方法</p>
+<h2 id="block">BLOCK</h2>
+<p>block是阻塞状态,这个是线程阻塞等待监视器锁的一个状态,一般是处于synchronized或方法中被阻塞</p>
+<h2 id="waiting">WAITING</h2>
+<p>线程的等待状态,一下是不带超时时间的线程等待方式</p>
+<pre><code>1. Object.wait
+2. Thread.join
+3. LockSupport.park
+</code></pre>
+<h2 id="time-waiting">TIME WAITING</h2>
+<p>这个也是线程的等待状态,但是是带超时时间的,等待一段时间后自动唤醒,有以下一些方法</p>
+<ol>
+<li>Thread.sleep</li>
+<li>Object.wait</li>
+<li>Thread.join</li>
+<li>LockSupport.parkNanos</li>
+<li>LockSupport.parkUtil</li>
+</ol>
+<h2 id="terminated">TERMINATED</h2>
+<p>线程的终结状态,线程结束后的状态(包括线程正常结束和线程出现异常退出)</p>
+<hr>
+<p>介绍了各个线程之后我们说一些它的转换关系,可以看下边的图</p>
+<figure data-type="image" tabindex="1"><img src="https://sdivens.github.io/post-images/%E7%BA%BF%E7%A8%8B%E7%9A%84%E7%8A%B6%E6%80%81/image-20200319111241472.png" alt="image-20200319111241472" loading="lazy"></figure>
+<p>在这个图中可以清晰的看到各个线程之间的转换关系</p>
+<p>然后在通过代码示例来验证一下</p>
+<pre><code class="language-java">public class ThreadStatusDemo {
+    public static Thread thread1;
+    public static ThreadStatusDemo obj;
+
+    public static void main(String[] args) throws Exception {
+        // 第一种状态切换 - 新建 -&gt; 运行 -&gt; 终止
+        System.out.println(&quot;#######第一种状态切换  - 新建 -&gt; 运行 -&gt; 终止################################&quot;);
+        Thread thread1 = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                System.out.println(&quot;thread1当前状态：&quot; + Thread.currentThread().getState().toString());
+                System.out.println(&quot;thread1 执行了&quot;);
+            }
+        });
+        System.out.println(&quot;没调用start方法，thread1当前状态：&quot; + thread1.getState().toString());
+        thread1.start();
+        Thread.sleep(2000L); // 等待thread1执行结束，再看状态
+        System.out.println(&quot;等待两秒，再看thread1当前状态：&quot; + thread1.getState().toString());
+        // thread1.start(); TODO 注意，线程终止之后，再进行调用，会抛出IllegalThreadStateException异常
+
+        System.out.println();
+        System.out.println(&quot;############第二种：新建 -&gt; 运行 -&gt; 等待 -&gt; 运行 -&gt; 终止(sleep方式)###########################&quot;);
+        Thread thread2 = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {// 将线程2移动到等待状态，1500后自动唤醒
+                    Thread.sleep(1500);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                System.out.println(&quot;thread2当前状态：&quot; + Thread.currentThread().getState().toString());
+                System.out.println(&quot;thread2 执行了&quot;);
+            }
+        });
+        System.out.println(&quot;没调用start方法，thread2当前状态：&quot; + thread2.getState().toString());
+        thread2.start();
+        System.out.println(&quot;调用start方法，thread2当前状态：&quot; + thread2.getState().toString());
+        Thread.sleep(200L); // 等待200毫秒，再看状态
+        System.out.println(&quot;等待200毫秒，再看thread2当前状态：&quot; + thread2.getState().toString());
+        Thread.sleep(3000L); // 再等待3秒，让thread2执行完毕，再看状态
+        System.out.println(&quot;等待3秒，再看thread2当前状态：&quot; + thread2.getState().toString());
+
+        System.out.println();
+        System.out.println(&quot;############第三种：新建 -&gt; 运行 -&gt; 阻塞 -&gt; 运行 -&gt; 终止###########################&quot;);
+        Thread thread3 = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                synchronized (ThreadStatusDemo.class) {
+                    System.out.println(&quot;thread3当前状态：&quot; + Thread.currentThread().getState().toString());
+                    System.out.println(&quot;thread3 执行了&quot;);
+                }
+            }
+        });
+        synchronized (ThreadStatusDemo.class) {
+            System.out.println(&quot;没调用start方法，thread3当前状态：&quot; + thread3.getState().toString());
+            thread3.start();
+            System.out.println(&quot;调用start方法，thread3当前状态：&quot; + thread3.getState().toString());
+            Thread.sleep(200L); // 等待200毫秒，再看状态
+            System.out.println(&quot;等待200毫秒，再看thread3当前状态：&quot; + thread3.getState().toString());
+        }
+        Thread.sleep(3000L); // 再等待3秒，让thread3执行完毕，再看状态
+        System.out.println(&quot;等待3秒，让thread3抢到锁，再看thread3当前状态：&quot; + thread3.getState().toString());
+
+    }
+
+}
+</code></pre>
+<p>执行结果如下:</p>
+<pre><code>#######第一种状态切换  - 新建 -&gt; 运行 -&gt; 终止################################
+没调用start方法，thread1当前状态：NEW
+thread1当前状态：RUNNABLE
+thread1 执行了
+等待两秒，再看thread1当前状态：TERMINATED
+
+############第二种：新建 -&gt; 运行 -&gt; 等待 -&gt; 运行 -&gt; 终止(sleep方式)###########################
+没调用start方法，thread2当前状态：NEW
+调用start方法，thread2当前状态：RUNNABLE
+等待200毫秒，再看thread2当前状态：TIMED_WAITING
+thread2当前状态：RUNNABLE
+thread2 执行了
+等待3秒，再看thread2当前状态：TERMINATED
+
+############第三种：新建 -&gt; 运行 -&gt; 阻塞 -&gt; 运行 -&gt; 终止###########################
+没调用start方法，thread3当前状态：NEW
+调用start方法，thread3当前状态：RUNNABLE
+等待200毫秒，再看thread3当前状态：BLOCKED
+thread3当前状态：RUNNABLE
+thread3 执行了
+等待3秒，让thread3抢到锁，再看thread3当前状态：TERMINATED
+</code></pre>
+<p>好了,对于线程的状态都了解了吗?</p>
+]]></content>
+    </entry>
     <entry>
         <title type="html"><![CDATA[java 多线程之线程介绍]]></title>
         <id>https://sdivens.github.io/post/java-thread/</id>
