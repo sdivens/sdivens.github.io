@@ -1,0 +1,681 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Gridea</title>
+<meta name="description" content="温故而知新" />
+<link rel="shortcut icon" href="https://sdivens.github.io/favicon.ico?v=1584691318444">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.7.2/animate.min.css">
+
+<link rel="stylesheet" href="https://sdivens.github.io/styles/main.css">
+
+
+
+  </head>
+  <body>
+    <div id="app" class="main px-4 flex flex-col lg:flex-row">
+      <div id="sidebar" class="sidebar-wrapper lg:static lg:w-1/4">
+  <div class="lg:sticky top-0">
+    <div class="sidebar-content">
+      <div class="flex lg:block p-4 lg:px-0 items-center fixed lg:static lg:block top-0 right-0 left-0 bg-white z-50">
+        <i class="ri-menu-2-line lg:mt-4 text-2xl cursor-pointer animated fadeIn" onclick="openMenu()"></i>
+        <a href="https://sdivens.github.io">
+          <img class="animated fadeInLeft avatar rounded-lg mx-4 lg:mt-32 lg:mx-0 mt-0 lg:w-24 lg:h-24 w-12 w-12" src="https://sdivens.github.io/images/avatar.png?v=1584691318444" alt="">
+        </a>
+        <h1 class="animated fadeInLeft lg:text-4xl font-extrabold lg:mt-8 mt-0 text-xl" style="animation-delay: 0.2s">Gridea</h1>
+      </div>
+      
+        <div class="animated fadeInLeft" style="animation-delay: 0.4s">
+          <p class="my-4 text-gray-600 font-light hidden lg:block">
+            文章目录
+          </p>
+          <div class="toc-container hidden lg:block">
+            <ul class="markdownIt-TOC">
+<li><a href="#%E4%BB%80%E4%B9%88%E6%98%AF%E7%BA%BF%E7%A8%8B%E9%80%9A%E4%BF%A1">什么是线程通信</a></li>
+<li><a href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E7%BA%BF%E7%A8%8B%E9%80%9A%E4%BF%A1">为什么需要线程通信</a></li>
+<li><a href="#%E7%BA%BF%E7%A8%8B%E4%B9%8B%E9%97%B4%E5%A6%82%E4%BD%95%E9%80%9A%E4%BF%A1">线程之间如何通信</a>
+<ul>
+<li><a href="#%E7%BA%BF%E7%A8%8B%E9%80%9A%E4%BF%A1%E7%9A%84%E6%96%B9%E5%BC%8F">线程通信的方式</a>
+<ul>
+<li><a href="#%E6%96%87%E4%BB%B6%E5%85%B1%E4%BA%AB">文件共享</a></li>
+<li><a href="#%E7%BD%91%E7%BB%9C%E5%85%B1%E4%BA%AB">网络共享</a></li>
+<li><a href="#%E5%85%B1%E4%BA%AB%E5%8F%98%E9%87%8F">共享变量</a></li>
+<li><a href="#%E7%BA%BF%E7%A8%8B%E5%8D%8F%E4%BD%9C-jdk-api">线程协作 JDK API</a>
+<ul>
+<li><a href="#%E8%A2%AB%E5%BC%83%E7%94%A8%E7%9A%84api-suspend%E5%92%8Cresume">被弃用的API suspend和resume</a>
+<ul>
+<li><a href="#%E4%BD%9C%E7%94%A8">作用</a></li>
+<li><a href="#%E5%A6%82%E4%BD%95%E4%BD%BF%E7%94%A8suspend%E5%92%8Cresume">如何使用suspend和resume</a></li>
+<li><a href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A2%AB%E5%BC%83%E7%94%A8">为什么被弃用?</a></li>
+</ul>
+</li>
+<li><a href="#waitnotify%E6%9C%BA%E5%88%B6">wait/notify机制</a>
+<ul>
+<li><a href="#%E4%BB%8B%E7%BB%8D">介绍</a></li>
+<li><a href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E4%BD%BF%E7%94%A8waitnotify%E6%9C%BA%E5%88%B6">为什么使用wait/notify机制</a></li>
+<li><a href="#%E5%A6%82%E4%BD%95%E4%BD%BF%E7%94%A8waitnotify">如何使用wait/notify</a></li>
+</ul>
+</li>
+<li><a href="#parkunpark%E6%9C%BA%E5%88%B6">park/unpark机制</a>
+<ul>
+<li><a href="#%E4%BB%8B%E7%BB%8D-2">介绍</a></li>
+<li><a href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E4%BD%BF%E7%94%A8parkunpark%E6%9C%BA%E5%88%B6">为什么要使用park/unpark机制</a></li>
+<li><a href="#parkunpark%E5%A6%82%E4%BD%95%E4%BD%BF%E7%94%A8">park/unpark如何使用</a></li>
+</ul>
+</li>
+<li><a href="#%E4%BC%AA%E5%94%A4%E9%86%92">伪唤醒</a>
+<ul>
+<li><a href="#%E4%BB%80%E4%B9%88%E6%98%AF%E4%BC%AA%E5%94%A4%E9%86%92">什么是伪唤醒?</a></li>
+<li><a href="#%E5%A6%82%E4%BD%95%E9%81%BF%E5%85%8D%E4%BC%AA%E5%94%A4%E9%86%92">如何避免伪唤醒</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      
+    </div>
+  </div>
+</div>
+
+<div class="menu-container">
+  <i class="ri-arrow-left-line text-2xl cursor-pointer animated fadeIn close-menu-btn" onclick="closeMenu()"></i>
+  <div>
+    
+      
+        <a href="/" class="menu" style="animation-delay: 0s">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu" style="animation-delay: 0.2s">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu" style="animation-delay: 0.4s">
+          标签
+        </a>
+      
+    
+      
+        <a href="/post/about" class="menu" style="animation-delay: 0.6000000000000001s">
+          关于
+        </a>
+      
+    
+  </div>
+  <div class="site-footer">
+    <div class="py-4 text-gray-700">Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a></div>
+    <a class="rss" href="https://sdivens.github.io/atom.xml" target="_blank">RSS</a>
+  </div>
+</div>
+<div class="mask" onclick="closeMenu()">
+</div>
+      <div class="content-wrapper py-32 lg:p-8 lg:w-3/4 post-detail animated fadeIn">
+        <h1 class="text-3xl font-bold lg:mt-16">线程通信</h1>
+        <div class="text-sm text-gray-700 lg:my-8">
+          2020-03-20 / 15 min read
+        </div>
+        
+          <img class="post-feature-image rounded-lg mx-auto my-4" src="https://sdivens.github.io/post-images/thread-notice.jpg" alt="">
+        
+        <div class="post-content yue">
+          <p>欢迎来到java多线程的世界</p>
+<p>让我们一起学习,研究java多线程和高并发知识吧</p>
+<!-- more -->
+<h1 id="什么是线程通信">什么是线程通信</h1>
+<p>线程通信是指多线程之间进行的数据交换</p>
+<h1 id="为什么需要线程通信">为什么需要线程通信</h1>
+<p>要想实现多个线程之间的协同,比如线程之间执行的先后顺序,获取某个线程的执行结果等等,这些都涉及到了线程之间的相互通信,举个例子</p>
+<blockquote>
+<p>早上卖包子的店子前面排了很长的队伍,但是这个时候包子卖完了,这个时候包子店的老板就想知道后厨的新鲜的包子出炉没有,包子店的老板可能会通过打电话问后厨的厨师包子是否已经做好了.这个时候,我们说卖包子的老板是一个线程,负责卖包子,后厨的厨师是一个线程,负责生产包子,他们之间各自负责各自的事情,但是又不是毫无关系的,他们之间需要通信,这个通信就是为了获取厨师这个线程的执行结果</p>
+</blockquote>
+<h1 id="线程之间如何通信">线程之间如何通信</h1>
+<h2 id="线程通信的方式">线程通信的方式</h2>
+<p>线程之间通信的方式有四类</p>
+<ol>
+<li>文件共享</li>
+<li>网络共享</li>
+<li>共享变量</li>
+<li>JDK提供的线程协调API</li>
+</ol>
+<h3 id="文件共享">文件共享</h3>
+<p>文件共享指的是一个线程往文件里边写数据,另外一个线程往里边读数据,以此实现了线程通信</p>
+<h3 id="网络共享">网络共享</h3>
+<p>网络共享和文件共享类似</p>
+<h3 id="共享变量">共享变量</h3>
+<p>变量共享是通过线程共享的内存区域(堆,常量池等)的变量进行修改和读取来实现线程之间的通信</p>
+<figure data-type="image" tabindex="1"><img src="https://sdivens.github.io/post-images/%E7%BA%BF%E7%A8%8B%E9%80%9A%E4%BF%A1/image-20200320141744014.png" alt="image-20200320141744014" loading="lazy"></figure>
+<p>比如线程1修改变量content的内容为100,线程2就就可以读到这个100,以此达到了线程之间通信的目的</p>
+<h3 id="线程协作-jdk-api">线程协作 JDK API</h3>
+<p>JDK中对于需要多线程协作完成某一任务的场景,提供了对应的API支持</p>
+<p>多线程协作的典型场景就是生产者-消费者模型(线程阻塞-线程唤醒)</p>
+<p>示例:线程一去买包子,没有包子,则等待,线程二生产出包子了,在通知线程一继续执行</p>
+<figure data-type="image" tabindex="2"><img src="https://sdivens.github.io/post-images/%E7%BA%BF%E7%A8%8B%E9%80%9A%E4%BF%A1/image-20200320142302300.png" alt="image-20200320142302300" loading="lazy"></figure>
+<p>JDK中有一下一些API</p>
+<ol>
+<li>suspend和resume</li>
+<li>wait和notify/notifyall</li>
+<li>park/unpark</li>
+</ol>
+<p>我们一个一个讲</p>
+<h4 id="被弃用的api-suspend和resume">被弃用的API suspend和resume</h4>
+<h5 id="作用">作用</h5>
+<p>suspend挂起目标线程,通过resume可以恢复线程执行</p>
+<h5 id="如何使用suspend和resume">如何使用suspend和resume</h5>
+<p>我们来看代码</p>
+<pre><code class="language-java">public class SuspendResumeDemo {
+    public static Object baozi = null;
+
+    public static void main(String[] args) {
+        Thread buyBaozi = new Thread(() -&gt; {
+            if (baozi == null) {
+                System.out.println(&quot;买包子的人:没有包子了,等一等吧&quot;);
+                Thread.currentThread().suspend();
+            }
+            System.out.println(&quot;买包子的人:买到包子了,回家&quot;);
+        });
+        buyBaozi.start();
+        try {
+            Thread.sleep(3000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        if (baozi == null) {
+            System.out.println(&quot;包子店:包子卖完了,赶紧生产包子&quot;);
+            baozi = new Object();
+            System.out.println(&quot;包子店:包子生产完了,告诉买包子的人有包子了&quot;);
+            buyBaozi.resume();
+        }
+    }
+}
+</code></pre>
+<p>这是 一个典型的消费者生产者模式的例子,线程一去买包子,没有包子,则等待,线程二生产出包子了,在通知线程一继续执行,可以看到运行结果如下:</p>
+<pre><code>买包子的人:没有包子了,等一等吧
+包子店:包子卖完了,赶紧生产包子
+包子店:包子生产完了,告诉买包子的人有包子了
+买包子的人:买到包子了,回家
+</code></pre>
+<h5 id="为什么被弃用">为什么被弃用?</h5>
+<p>被弃用的主要原因是容易写出死锁的代码,所以用wait/notify和park/unpark所替代,那么为什么容易写出死锁的代码呢?</p>
+<ol>
+<li>suspend挂起之后不会释放锁</li>
+<li>suspend一定要比resume先执行,如果比resume后执行,就会发生死锁</li>
+</ol>
+<p>第一点,suspend挂起之后不会释放锁,那么如果在同步代码块synchronized中写suspend的的代码,就很容易发生死锁,我们来看下边这段代码</p>
+<pre><code class="language-java">public class SuspendResumeDemo {
+    public static Object baozi = null;
+
+    public static void main(String[] args) {
+        SuspendResumeDemo demo = new SuspendResumeDemo();
+        demo.suspendResumeTest();
+    }
+    public void suspendResumeTest() {
+        Thread buyBaozi = new Thread(() -&gt; {
+            synchronized (this) {
+                if (baozi == null) {
+                    System.out.println(&quot;买包子的人:没有包子了,等一等吧&quot;);
+                    Thread.currentThread().suspend();
+                }
+            }
+            System.out.println(&quot;买包子的人:买到包子了,回家&quot;);
+        });
+        buyBaozi.start();
+        try {
+            Thread.sleep(3000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        if (baozi == null) {
+            System.out.println(&quot;包子店:包子卖完了,赶紧生产包子&quot;);
+            baozi = new Object();
+            synchronized (this) {
+                System.out.println(&quot;包子店:包子生产完了,告诉买包子的人有包子了&quot;);
+                buyBaozi.resume();
+            }
+        }
+    }
+}
+</code></pre>
+<p>这段代码中,<code>Thread.currentThread().suspend();</code>和<code>buyBaozi.resume();</code>都是在<code>synchronized</code>代码块中的,那么<code>buyBaozi</code>这个线程通过<code>Thread.currentThread().suspend()</code>挂起了线程,但是没有释放锁,那么主线程在执行<code>buyBaozi.resume();</code>通知<code>buyBaozi</code>的时候要先获取这把锁,但是获取不到(因为锁还在<code>buyBaozi</code>自己手上),所以造成了死锁,永远也唤醒不了<code>buyBaozi</code>这个线程,执行结果如下:</p>
+<figure data-type="image" tabindex="3"><img src="https://sdivens.github.io/post-images/%E7%BA%BF%E7%A8%8B%E9%80%9A%E4%BF%A1/image-20200320144738500.png" alt="image-20200320144738500" loading="lazy"></figure>
+<p>第二点,suspend一定要比resume先执行,如果比resume后执行,就会发生死锁,我们来看代码</p>
+<pre><code class="language-java">public class SuspendResumeDemo {
+    public static Object baozi = null;
+
+    public static void main(String[] args) {
+        SuspendResumeDemo demo = new SuspendResumeDemo();
+        demo.suspendResumeTest();
+    }
+    public void suspendResumeTest() {
+        Thread buyBaozi = new Thread(() -&gt; {
+            if (baozi == null) {
+                System.out.println(&quot;买包子的人:没有包子了,等一等吧&quot;);
+                try {
+                    Thread.sleep(5000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                Thread.currentThread().suspend();
+            }
+            System.out.println(&quot;买包子的人:买到包子了,回家&quot;);
+        });
+        buyBaozi.start();
+        try {
+            Thread.sleep(3000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        if (baozi == null) {
+            System.out.println(&quot;包子店:包子卖完了,赶紧生产包子&quot;);
+            baozi = new Object();
+            System.out.println(&quot;包子店:包子生产完了,告诉买包子的人有包子了&quot;);
+            buyBaozi.resume();
+        }
+
+    }
+}
+</code></pre>
+<p>在这段代码中,生产包子只花了3秒,而买包子的人等了5秒,就会导致<code>buyBaozi.resume();</code>在<code>Thread.currentThread().suspend();</code>之前执行,这样也会发生死锁,<code>baozi</code>这个线程永远不会被唤醒了,我们来看执行结果</p>
+<figure data-type="image" tabindex="4"><img src="https://sdivens.github.io/post-images/%E7%BA%BF%E7%A8%8B%E9%80%9A%E4%BF%A1/image-20200320145328932.png" alt="image-20200320145328932" loading="lazy"></figure>
+<p>同样的结果,所以不推荐使用suspend和resume</p>
+<h4 id="waitnotify机制">wait/notify机制</h4>
+<h5 id="介绍">介绍</h5>
+<p>wait方法会导致当前线程等待,加入该对象的等待集合中,并且放弃该对象持有的锁,notify/notifyall方法会唤醒一个或所有正在等待这个对象锁的线程</p>
+<p>这些方法只有由同一个对象锁的持有者线程调用,也就是必须写在同步代码块synchronized中,否则会抛出<code>IllegalMonitorStateException</code>异常</p>
+<p>也就是说,调用wait方法的线程和调用notify/notifyall方法的线程必须在synchronized中,并且持有的是同一个锁,如果调用notify方法的线程持有的锁和调用wait方法的线程持有的锁不是同一个,也不可以调用</p>
+<blockquote>
+<p><em>注意</em>:wait方法虽然会释放锁,但是对于<strong>调用的顺序也是有要求的</strong>,如果先调用线程的notify,线程才调用wait(和上边的suspend和resume一样),那么线程同样会一直进入WAITTING状态</p>
+</blockquote>
+<h5 id="为什么使用waitnotify机制">为什么使用wait/notify机制</h5>
+<p>因为wait会自动释放锁,不会容易造成死锁,比之前的suspend和resume更安全</p>
+<h5 id="如何使用waitnotify">如何使用wait/notify</h5>
+<p>看代码</p>
+<pre><code class="language-java">public class WaitNotifyDemo {
+    public static Object baozidian = null;
+
+    public static void main(String[] args) throws Exception {
+        WaitNotifyDemo demo = new WaitNotifyDemo();
+        demo.waitNotifyTest();
+    }
+
+    public void waitNotifyTest() throws Exception {
+        // 启动线程
+        new Thread(() -&gt; {
+            synchronized (this) {
+                while (baozidian == null) { // 如果没包子，则进入等待
+                    try {
+                        System.out.println(&quot;买包子的人:没有包子了,等一等吧&quot;);
+                        this.wait();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+            System.out.println(&quot;买包子的人:买到包子了,回家&quot;);
+        }).start();
+        // 3秒之后，生产一个包子
+        Thread.sleep(3000L);
+        System.out.println(&quot;包子店:包子卖完了,赶紧生产包子&quot;);
+        baozidian = new Object();
+        synchronized (this) {
+            this.notifyAll();
+            System.out.println(&quot;包子店:包子生产完了,告诉买包子的人有包子了&quot;);
+        }
+    }
+
+}
+</code></pre>
+<p>这个是正常使用wait和notify的情况,在这个里边我们要注意一点,那就是<code>this.wait()</code>和<code>this.notifyAll()</code>必须是在<code>synchronized</code>包裹中. 我们来看执行结果如下:</p>
+<pre><code>买包子的人:没有包子了,等一等吧
+包子店:包子卖完了,赶紧生产包子
+包子店:包子生产完了,告诉买包子的人有包子了
+买包子的人:买到包子了,回家
+</code></pre>
+<p>既然有正常使用的情况,那肯定有不正常使用的情况,我们之前说过,wait虽然可以自动释放锁,但是必须在notify和notifyall方法之前调用,如果先调用notify/notifyall,再调用wait,那么会导致调用wait方法是线程永远处于WAITING状态,但是锁会被释放,我们来看代码</p>
+<pre><code class="language-java">public class WaitNotifyDemo {
+    public static Object baozidian = null;
+
+    public static void main(String[] args) throws Exception {
+        WaitNotifyDemo demo = new WaitNotifyDemo();
+        demo.waitNotifyDeadLockTest();
+    }
+
+    public void waitNotifyDeadLockTest() throws Exception {
+        // 启动线程
+        new Thread(() -&gt; {
+            if (baozidian == null) { // 如果没包子，则进入等待
+                try {
+                    System.out.println(&quot;买包子的人:没有包子了,等一等吧&quot;);
+                    Thread.sleep(5000L);
+                } catch (InterruptedException e1) {
+                    e1.printStackTrace();
+                }
+                synchronized (this) {
+                    try {
+                        this.wait();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+            System.out.println(&quot;买包子的人:买到包子了,回家&quot;);
+        }).start();
+        // 3秒之后，生产一个包子
+        Thread.sleep(3000L);
+        System.out.println(&quot;包子店:包子卖完了,赶紧生产包子&quot;);
+        baozidian = new Object();
+        synchronized (this) {
+            this.notifyAll();
+            System.out.println(&quot;包子店:包子生产完了,告诉买包子的人有包子了&quot;);
+        }
+    }
+}
+</code></pre>
+<p>在这个代码中,3秒后会执行<code>this.notifyAll();</code>,然而5秒后才会执行<code>this.wait();</code>,所以是先执行notify/notifyall,再执行wait,这样会导致调用wait方法的线程永远进入WAITING状态,但是锁是会被释放出来,我们来看执行结果</p>
+<figure data-type="image" tabindex="5"><img src="https://sdivens.github.io/post-images/%E7%BA%BF%E7%A8%8B%E9%80%9A%E4%BF%A1/image-20200320151701413.png" alt="image-20200320151701413" loading="lazy"></figure>
+<p>买包子的线程永远不会停止.但是锁释放出来了,接下来我们说另一个API</p>
+<h4 id="parkunpark机制">park/unpark机制</h4>
+<h5 id="介绍-2">介绍</h5>
+<p>park和unpark机制可以看成是通行证或者许可证机制,有通行证就可以获得锁,没有通行证就不能获得锁</p>
+<p>park方法可以看成是去某个地方获取通行证,而unpark是将通行证放在某个地方.这样做的好处是什么?</p>
+<h5 id="为什么要使用parkunpark机制">为什么要使用park/unpark机制</h5>
+<p>就是可以<strong>解决以上两种API方式都有的问题:顺序问题</strong>.在suspend/resume和wait/notify中都有顺序问题,那就是必须先调用等待方法,在调用唤醒方法,否则要么容易死锁,要么线程永远处于WAITING状态.park/unpark则不通,可以先调用park等待获取通行证,然后调用park将通行证送过来,也可以先调用unpark将通行证送过来放在这,过一会如果park方法过来取通行证的话,可以直接取走,不用再等待了,<strong>不要求park/unpark的调用顺序</strong>,但是,<strong>unpark不能叠加</strong>,就是说,如果连续调用3次unpark方法,让后在连续调用3次park方法,那么第一次park会直接获取通行证继续执行,但是第二次和第三次会永远进入WAITTING状态</p>
+<h5 id="parkunpark如何使用">park/unpark如何使用</h5>
+<p>先看正常使用的代码</p>
+<pre><code class="language-java">public class ParkUnparkDemo {
+    public static Object baozidian = null;
+
+    public static void main(String[] args) throws Exception {
+        ParkUnparkDemo demo = new ParkUnparkDemo();
+        demo.parkUnparkTest();
+    }
+
+    public void parkUnparkTest() throws Exception {
+        // 启动线程
+        Thread consumerThread = new Thread(() -&gt; {
+            while (baozidian == null) { // 如果没包子，则进入等待
+                System.out.println(&quot;买包子的人:没有包子了,等一等吧&quot;);
+                LockSupport.park();
+            }
+            System.out.println(&quot;买包子的人:买到包子了,回家&quot;);
+        });
+        consumerThread.start();
+        // 3秒之后，生产一个包子
+        Thread.sleep(3000L);
+        System.out.println(&quot;包子店:包子卖完了,赶紧生产包子&quot;);
+        baozidian = new Object();
+        LockSupport.unpark(consumerThread);
+        System.out.println(&quot;包子店:包子生产完了,告诉买包子的人有包子了&quot;);
+    }
+}
+</code></pre>
+<p>先调用<code>LockSupport.park()</code>让线程挂起,然后在调用<code>LockSupport.unpark(consumerThread)</code>唤醒<code>consumerThread</code>这个线程,注意,unpark方法中需要传入一个参数,这个参数就是你指定的需要唤醒的线程,在这个例子中是<code>consumerThread</code>这个线程</p>
+<p>我们来看运行的结果:</p>
+<pre><code class="language-买包子的人:没有包子了,等一等吧">买包子的人:没有包子了,等一等吧
+包子店:包子卖完了,赶紧生产包子
+包子店:包子生产完了,告诉买包子的人有包子了
+买包子的人:买到包子了,回家
+</code></pre>
+<p>既然有正常使用的方式,肯定有非正常使用的方式,我们来看不正常的使用方式</p>
+<pre><code class="language-java">public class ParkUnparkDemo {
+    public static Object baozidian = null;
+
+    public static void main(String[] args) throws Exception {
+        ParkUnparkDemo demo = new ParkUnparkDemo();
+        demo.parkUnparkDeadLockTest();
+    }
+
+    public void parkUnparkDeadLockTest() throws Exception {
+        // 启动线程
+        Thread consumerThread = new Thread(() -&gt; {
+            if (baozidian == null) { // 如果没包子，则进入等待
+                System.out.println(&quot;买包子的人:没有包子了,等一等吧&quot;);
+                // 当前线程拿到锁，然后挂起
+                synchronized (this) {
+                    LockSupport.park();
+                }
+            }
+            System.out.println(&quot;买包子的人:买到包子了,回家&quot;);
+        });
+        consumerThread.start();
+        // 3秒之后，生产一个包子
+        Thread.sleep(3000L);
+        System.out.println(&quot;包子店:包子卖完了,赶紧生产包子&quot;);
+        baozidian = new Object();
+        // 争取到锁以后，再恢复consumerThread
+        synchronized (this) {
+            LockSupport.unpark(consumerThread);
+        }
+        System.out.println(&quot;包子店:包子生产完了,告诉买包子的人有包子了&quot;);
+    }
+}
+</code></pre>
+<p>在上面的代码中,我们在<code>LockSupport.park();</code>和<code>LockSupport.unpark(consumerThread);</code>上都添加了<code>synchronized</code>同步代码块,那么造成的结果是什么呢? 我们来看运行结果:</p>
+<figure data-type="image" tabindex="6"><img src="https://sdivens.github.io/post-images/%E7%BA%BF%E7%A8%8B%E9%80%9A%E4%BF%A1/image-20200320154233037.png" alt="image-20200320154233037" loading="lazy"></figure>
+<p>结果就是,造成了<em>死锁</em>,聪明的朋友应该已经知道了原因:因为<strong>park/unpark不会自动释放锁</strong></p>
+<p>最后我们总结一下:</p>
+<table>
+<thead>
+<tr>
+<th>JDK API</th>
+<th>是否自动释放锁</th>
+<th>是否要求顺序</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>suspend/resume</td>
+<td>false</td>
+<td>true</td>
+</tr>
+<tr>
+<td>wait/notify</td>
+<td>true</td>
+<td>true</td>
+</tr>
+<tr>
+<td>park/unpark</td>
+<td>false</td>
+<td>false</td>
+</tr>
+</tbody>
+</table>
+<h4 id="伪唤醒">伪唤醒</h4>
+<h5 id="什么是伪唤醒">什么是伪唤醒?</h5>
+<p>伪唤醒是处于等待状态的线程可能会受到错误警报和伪唤醒,这个伪唤醒是一个很底层的原因,设计到CPU以及操作系统的一些调度,我们只要知道有伪唤醒这个不确定因素就好了</p>
+<p>伪唤醒是指<em>线程并非由notify/notifyall/resume/unpark等API调用而唤醒,而是更底层的原因导致的</em></p>
+<h5 id="如何避免伪唤醒">如何避免伪唤醒</h5>
+<p>为了避免处于等待状态的线程被不正常的唤醒(伪唤醒),所以我们之前的代码中的<code>if</code>条件判断语句最好改成<code>while</code>循环语句来判断,比如之前判断包子没有了的代码:</p>
+<pre><code class="language-java">if (baozidian == null) { // 如果没包子，则进入等待
+    try {
+        System.out.println(&quot;买包子的人:没有包子了,等一等吧&quot;);
+        Thread.sleep(5000L);
+    } catch (InterruptedException e1) {
+        e1.printStackTrace();
+    }
+    synchronized (this) {
+        try {
+            this.wait();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+}
+</code></pre>
+<p>我们可以将<code>if (baozidian == null)</code>改成<code>while (baozidian == null)</code>,其他的判断也是一样的,这样的好处是,在<code>this.wait()</code>这个地方如果被伪唤醒了,会再一次进入到循环判断包子是否已经有了,如果还是没有,那么线程会继续调用<code>this.wait()</code>然后进入等待,如果包子已经有了,那么就不会再进入这个循环体了,可以去执行自己的事情(买到包子,回家)</p>
+
+        </div>
+
+        
+          <a class="animated fadeInUp p-2 items-center text-sm text-gray-700 border hover:bg-gray-300 leading-none rounded-full flex lg:inline-flex m-4 " href="https://sdivens.github.io/tag/F6g2TY-sw/">
+            <span class="flex-auto">java</span>
+          </a>
+        
+          <a class="animated fadeInUp p-2 items-center text-sm text-gray-700 border hover:bg-gray-300 leading-none rounded-full flex lg:inline-flex m-4 " href="https://sdivens.github.io/tag/RQB_tk3ym/">
+            <span class="flex-auto">多线程</span>
+          </a>
+        
+
+
+        <div class="flex justify-between py-8">
+          
+
+          
+            <div class="next-post">
+              <a href="https://sdivens.github.io/post/internet-tcpandudp/">
+                <h3 class="post-title">
+                  TCP&amp;UDP协议
+                  <i class="ri-arrow-right-line"></i>
+                </h3>
+              </a>
+            </div>
+          
+        </div>
+
+        
+          
+            <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+<script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+
+<div id="gitalk-container"></div>
+
+<script>
+
+  var gitalk = new Gitalk({
+    clientID: 'ada3a2adfeb6257b7b99',
+    clientSecret: 'd0ab2be6b4f65d5a43127faf0fdf94ac250532a1',
+    repo: 'sdivens.github.io',
+    owner: 'sdivens',
+    admin: ['sdivens'],
+    id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+    distractionFreeMode: false  // Facebook-like distraction free mode
+  })
+
+  gitalk.render('gitalk-container')
+
+</script>
+
+          
+
+          
+        
+
+      </div>
+    </div>
+
+    <script src="https://sdivens.github.io/media/prism.js"></script>  
+<script>
+
+Prism.highlightAll()
+let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+// This should probably be throttled.
+// Especially because it triggers during smooth scrolling.
+// https://lodash.com/docs/4.17.10#throttle
+// You could do like...
+// window.addEventListener("scroll", () => {
+//    _.throttle(doThatStuff, 100);
+// });
+// Only not doing it here to keep this Pen dependency-free.
+
+window.addEventListener("scroll", event => {
+  let fromTop = window.scrollY;
+
+  mainNavLinks.forEach((link, index) => {
+    let section = document.getElementById(decodeURI(link.hash).substring(1));
+    let nextSection = null
+    if (mainNavLinks[index + 1]) {
+      nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+    }
+    if (section.offsetTop <= fromTop) {
+      if (nextSection) {
+        if (nextSection.offsetTop > fromTop) {
+          link.classList.add("current");
+        } else {
+          link.classList.remove("current");    
+        }
+      } else {
+        link.classList.add("current");
+      }
+    } else {
+      link.classList.remove("current");
+    }
+  });
+});
+
+
+document.addEventListener("DOMContentLoaded", function() {
+  var lazyImages = [].slice.call(document.querySelectorAll(".post-feature-image.lazy"));
+
+  if ("IntersectionObserver" in window) {
+    let lazyImageObserver = new IntersectionObserver(function(entries, observer) {
+      entries.forEach(function(entry) {
+        if (entry.isIntersecting) {
+          let lazyImage = entry.target
+          lazyImage.style.backgroundImage = `url(${lazyImage.dataset.bg})`
+          lazyImage.classList.remove("lazy")
+          lazyImageObserver.unobserve(lazyImage)
+        }
+      });
+    });
+
+    lazyImages.forEach(function(lazyImage) {
+      lazyImageObserver.observe(lazyImage)
+    })
+  } else {
+    // Possibly fall back to a more compatible method here
+  }
+});
+
+const menuContainer = document.querySelector('.menu-container')
+const menus = document.querySelectorAll('.menu-container .menu')
+const mask = document.querySelector('.mask')
+const contentWrapper = document.querySelector('.content-wrapper')
+const latestArticle = document.querySelector('.latest-article')
+const readMore = document.querySelector('.read-more')
+const indexPage = document.querySelector('.index-page')
+
+const isHome = location.pathname === '/'
+if (latestArticle) {
+  latestArticle.style.display = isHome ? 'block' : 'none'
+  readMore.style.display = isHome ? 'block' : 'none'
+  indexPage.style.display = isHome ? 'none' : 'block'
+}
+
+const openMenu = () => {
+  menuContainer.classList.add('open')
+  menus.forEach(menu => {
+    menu.classList.add('animated', 'fadeInLeft')
+  })
+  mask.classList.add('open')
+  contentWrapper.classList.add('is-second')
+}
+
+const closeMenu = () => {
+  menuContainer.classList.remove('open')
+  menus.forEach(menu => {
+    menu.classList.remove('animated', 'fadeInLeft')
+  })
+  mask.classList.remove('open')
+  contentWrapper.classList.remove('is-second')
+}
+</script>
+  
+  </body>
+</html>
