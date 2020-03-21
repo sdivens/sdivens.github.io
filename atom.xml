@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://sdivens.github.io</id>
     <title>Gridea</title>
-    <updated>2020-03-21T08:02:08.059Z</updated>
+    <updated>2020-03-21T09:03:05.299Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://sdivens.github.io"/>
     <link rel="self" href="https://sdivens.github.io/atom.xml"/>
@@ -10,6 +10,156 @@
     <logo>https://sdivens.github.io/images/avatar.png</logo>
     <icon>https://sdivens.github.io/favicon.ico</icon>
     <rights>All rights reserved 2020, Gridea</rights>
+    <entry>
+        <title type="html"><![CDATA[BIO阻塞模式网络编程之HTTP协议]]></title>
+        <id>https://sdivens.github.io/post/net-bio-http/</id>
+        <link href="https://sdivens.github.io/post/net-bio-http/">
+        </link>
+        <updated>2020-03-21T09:01:57.000Z</updated>
+        <summary type="html"><![CDATA[<p>欢迎来到java网络知识的世界</p>
+<p>让我们一起学习,研究java高并发网络编程的知识吧</p>
+]]></summary>
+        <content type="html"><![CDATA[<p>欢迎来到java网络知识的世界</p>
+<p>让我们一起学习,研究java高并发网络编程的知识吧</p>
+<!-- more -->
+<p>我们之前用Socket和ServerSocket以及多线程实现了一个客户端/服务端的一个网络程序,他们可以在客户端和服务端之间通信,那么现在有一个问题,这个服务端可以被浏览器访问吗?我们来试一下</p>
+<p>首先运行之前写的代码,然后启动服务端,不知道之前的代码的话可以点一下<a href="https://sdivens.github.io/post/net-bio-2">这里</a></p>
+<figure data-type="image" tabindex="1"><img src="https://sdivens.github.io/post-images/BIO%E9%98%BB%E5%A1%9E%E6%A8%A1%E5%BC%8F%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B%E4%B9%8BHTTP%E5%8D%8F%E8%AE%AE/image-20200321161436392.png" alt="image-20200321161436392" loading="lazy"></figure>
+<p>服务端启动好了之后,我们通过浏览器来访问一下http://localhost:8080 ,得到的结果是:</p>
+<figure data-type="image" tabindex="2"><img src="https://sdivens.github.io/post-images/BIO%E9%98%BB%E5%A1%9E%E6%A8%A1%E5%BC%8F%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B%E4%B9%8BHTTP%E5%8D%8F%E8%AE%AE/image-20200321161522084.png" alt="image-20200321161522084" loading="lazy"></figure>
+<p>访问不了,为什么呢?</p>
+<p>我们先来介绍一下HTTP协议</p>
+<p>HTTP的请求数据报分成四个部分,可以参考<a href="https://hit-alibaba.github.io/interview/basic/network/HTTP.html">这个</a></p>
+<figure data-type="image" tabindex="3"><img src="https://sdivens.github.io/post-images/BIO%E9%98%BB%E5%A1%9E%E6%A8%A1%E5%BC%8F%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B%E4%B9%8BHTTP%E5%8D%8F%E8%AE%AE/image-20200321164657484.png" alt="image-20200321164657484" loading="lazy"></figure>
+<p>HTTP响应数据报同样可以分成四个部分</p>
+<figure data-type="image" tabindex="4"><img src="https://sdivens.github.io/post-images/BIO%E9%98%BB%E5%A1%9E%E6%A8%A1%E5%BC%8F%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B%E4%B9%8BHTTP%E5%8D%8F%E8%AE%AE/image-20200321164817673.png" alt="image-20200321164817673" loading="lazy"></figure>
+<p>在这个例子中,我们要向通过浏览器访问服务器,并且服务器返回内容可以被浏览器正常解析,只要返回的数据格式符合HTTP协议的返回格式就可以,我们再来改一下代码</p>
+<pre><code class="language-java">public class BIODemo3 {
+    static class BIOServer{
+        private static ExecutorService executorService = Executors.newCachedThreadPool();
+
+        public static void main(String[] args) {
+
+            // 启动服务
+            ServerSocket server;
+            try {
+                 server = new ServerSocket(8080);
+            } catch (IOException e) {
+                e.printStackTrace();
+                return;
+            }
+            System.out.println(&quot;服务启动成功&quot;);
+
+            // 如果服务没有关闭,则不断接受新的客户端连接
+            while (!server.isClosed()) {
+                Socket request;
+                try {
+                    // accept是一个阻塞方法,会如果没有新的连接,会一直在这行等着
+                    request = server.accept();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    continue;
+                }
+                System.out.println(&quot;收到新连接: &quot;+request.toString());
+                // 接收到新连接之后,通过线程池开启新线程去打印客户端的请求
+                executorService.execute(() -&gt;{
+                    InputStream input;
+                    BufferedReader reader;
+                    try {
+                        input = request.getInputStream();
+                        reader = new BufferedReader(new InputStreamReader(input, &quot;utf-8&quot;));
+                        String msg;
+                        // 在这里,如果reader.readLine没有数据,也会被阻塞
+                        while ((msg = reader.readLine()) != null) {
+                            if (StringUtils.isEmpty(msg)){
+                                break;
+                            }
+                            System.out.println(msg);
+                        }
+                        // 收到请求后回复客户端
+                        OutputStream out = request.getOutputStream();
+                        out.write((&quot;HTTP/1.1 200 OK&quot;+System.lineSeparator()).getBytes());
+                        out.write((&quot;Content-Length 11&quot;+System.lineSeparator()).getBytes());
+                        out.write((System.lineSeparator()).getBytes());
+                        out.write(&quot;hello world&quot;.getBytes());
+                        out.flush();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }finally {
+                        // 关闭请求
+                        try {
+                            request.close();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                });
+
+            }
+            // 关闭服务
+            try {
+                server.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    static class BIOClient{
+        public static void main(String[] args) {
+            // 创建客户端连接到服务器的8080端口
+            Socket socket;
+            try {
+                 socket= new Socket(&quot;localhost&quot;, 8080);
+            } catch (IOException e) {
+                e.printStackTrace();
+                return;
+            }
+
+            // 向服务器传输信息
+            OutputStream outputStream;
+            try {
+                outputStream = socket.getOutputStream();
+            } catch (IOException e) {
+                e.printStackTrace();
+                return;
+            }
+            Scanner scanner = new Scanner(System.in);
+            System.out.println(&quot;请输入要向服务器传输的信息:&quot;);
+            String msg = scanner.nextLine();
+            try {
+                // write方法会一直阻塞,知道msg的内容写完了为止,所以如果msg的内容很多,会一直阻塞在这
+                outputStream.write(msg.getBytes());
+            } catch (IOException e) {
+                e.printStackTrace();
+                return;
+            }
+            // 关闭scanner
+            scanner.close();
+            try {
+                // 关闭客户端连接
+                socket.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+}
+</code></pre>
+<p>这个代码与之前对比,只是添加了向客户端返回符合HTTP协议的一段代码</p>
+<pre><code class="language-java">// 收到请求后回复客户端
+OutputStream out = request.getOutputStream();
+out.write((&quot;HTTP/1.1 200 OK&quot;+System.lineSeparator()).getBytes());
+out.write((&quot;Content-Length 11&quot;+System.lineSeparator()).getBytes());
+out.write((System.lineSeparator()).getBytes());
+out.write(&quot;&lt;h1&gt;hello world&lt;/h1&gt;&quot;.getBytes());
+out.flush();
+</code></pre>
+<p>我们再启动浏览器看一下运行效果</p>
+<figure data-type="image" tabindex="5"><img src="https://sdivens.github.io/post-images/BIO%E9%98%BB%E5%A1%9E%E6%A8%A1%E5%BC%8F%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B%E4%B9%8BHTTP%E5%8D%8F%E8%AE%AE/image-20200321170120669.png" alt="image-20200321170120669" loading="lazy"></figure>
+<p>我们可以看到浏览器中成功的显示了服务器端的返回</p>
+]]></content>
+    </entry>
     <entry>
         <title type="html"><![CDATA[BIO阻塞模式网络编程(中)]]></title>
         <id>https://sdivens.github.io/post/net-bio-2/</id>
@@ -1051,6 +1201,7 @@ public class Demo4 extends Thread {
 <h2 id="tcpudp协议"><a href="https://sdivens.github.io/post/internet-tcpandudp">TCP&amp;UDP协议</a></h2>
 <h2 id="bio阻塞模式网络编程上"><a href="https://sdivens.github.io/post/net-bio-1">BIO阻塞模式网络编程(上)</a></h2>
 <h2 id="bio阻塞模式网络编程上-2"><a href="https://sdivens.github.io/post/net-bio-2">BIO阻塞模式网络编程(上)</a></h2>
+<h2 id="bio阻塞模式网络编程之http协议"><a href="https://sdivens.github.io/post/net-bio-http">BIO阻塞模式网络编程之HTTP协议</a></h2>
 ]]></content>
     </entry>
     <entry>

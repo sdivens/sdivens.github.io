@@ -33,13 +33,7 @@
             文章目录
           </p>
           <div class="toc-container hidden lg:block">
-            <ul class="markdownIt-TOC">
-<li><a href="#%E4%BC%98%E5%8C%96">优化</a></li>
-<li><a href="#%E4%B8%8E%E4%BC%98%E5%8C%96%E5%89%8D%E6%AF%94%E8%BE%83">与优化前比较</a></li>
-<li><a href="#%E6%80%BB%E7%BB%93">总结</a></li>
-<li><a href="#%E6%9C%80%E5%90%8E">最后</a></li>
-</ul>
-
+            
           </div>
         </div>
       
@@ -84,20 +78,31 @@
 <div class="mask" onclick="closeMenu()">
 </div>
       <div class="content-wrapper py-32 lg:p-8 lg:w-3/4 post-detail animated fadeIn">
-        <h1 class="text-3xl font-bold lg:mt-16">BIO阻塞模式网络编程(中)</h1>
+        <h1 class="text-3xl font-bold lg:mt-16">BIO阻塞模式网络编程之HTTP协议</h1>
         <div class="text-sm text-gray-700 lg:my-8">
-          2020-03-21 / 7 min read
+          2020-03-21 / 4 min read
         </div>
         
-          <img class="post-feature-image rounded-lg mx-auto my-4" src="https://sdivens.github.io/post-images/net-bio-2.jpg" alt="">
+          <img class="post-feature-image rounded-lg mx-auto my-4" src="/post-images/net-bio-http.jpg" alt="">
         
         <div class="post-content yue">
           <p>欢迎来到java网络知识的世界</p>
 <p>让我们一起学习,研究java高并发网络编程的知识吧</p>
 <!-- more -->
-<h1 id="优化">优化</h1>
-<p><a href="https://sdivens.github.io/post/net-bio-1">之前</a>我们已经了解了如果使用java进行BIO网络编程,但是那种会有很大的性能问题,我们可以采用多线程的方式优化这段代码,如何优化呢?我们来看新的代码</p>
-<pre><code class="language-java">    static class BIOServer{
+<p>我们之前用Socket和ServerSocket以及多线程实现了一个客户端/服务端的一个网络程序,他们可以在客户端和服务端之间通信,那么现在有一个问题,这个服务端可以被浏览器访问吗?我们来试一下</p>
+<p>首先运行之前写的代码,然后启动服务端,不知道之前的代码的话可以点一下<a href="https://sdivens.github.io/post/net-bio-2">这里</a></p>
+<figure data-type="image" tabindex="1"><img src="https://sdivens.github.io/post-images/BIO%E9%98%BB%E5%A1%9E%E6%A8%A1%E5%BC%8F%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B%E4%B9%8BHTTP%E5%8D%8F%E8%AE%AE/image-20200321161436392.png" alt="image-20200321161436392" loading="lazy"></figure>
+<p>服务端启动好了之后,我们通过浏览器来访问一下http://localhost:8080 ,得到的结果是:</p>
+<figure data-type="image" tabindex="2"><img src="https://sdivens.github.io/post-images/BIO%E9%98%BB%E5%A1%9E%E6%A8%A1%E5%BC%8F%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B%E4%B9%8BHTTP%E5%8D%8F%E8%AE%AE/image-20200321161522084.png" alt="image-20200321161522084" loading="lazy"></figure>
+<p>访问不了,为什么呢?</p>
+<p>我们先来介绍一下HTTP协议</p>
+<p>HTTP的请求数据报分成四个部分,可以参考<a href="https://hit-alibaba.github.io/interview/basic/network/HTTP.html">这个</a></p>
+<figure data-type="image" tabindex="3"><img src="https://sdivens.github.io/post-images/BIO%E9%98%BB%E5%A1%9E%E6%A8%A1%E5%BC%8F%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B%E4%B9%8BHTTP%E5%8D%8F%E8%AE%AE/image-20200321164657484.png" alt="image-20200321164657484" loading="lazy"></figure>
+<p>HTTP响应数据报同样可以分成四个部分</p>
+<figure data-type="image" tabindex="4"><img src="https://sdivens.github.io/post-images/BIO%E9%98%BB%E5%A1%9E%E6%A8%A1%E5%BC%8F%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B%E4%B9%8BHTTP%E5%8D%8F%E8%AE%AE/image-20200321164817673.png" alt="image-20200321164817673" loading="lazy"></figure>
+<p>在这个例子中,我们要向通过浏览器访问服务器,并且服务器返回内容可以被浏览器正常解析,只要返回的数据格式符合HTTP协议的返回格式就可以,我们再来改一下代码</p>
+<pre><code class="language-java">public class BIODemo3 {
+    static class BIOServer{
         private static ExecutorService executorService = Executors.newCachedThreadPool();
 
         public static void main(String[] args) {
@@ -136,9 +141,15 @@
                             if (StringUtils.isEmpty(msg)){
                                 break;
                             }
-                            System.out.println(String.format(&quot;收到来自%s的数据,数据内容为:&quot;, request.toString()));
                             System.out.println(msg);
                         }
+                        // 收到请求后回复客户端
+                        OutputStream out = request.getOutputStream();
+                        out.write((&quot;HTTP/1.1 200 OK&quot;+System.lineSeparator()).getBytes());
+                        out.write((&quot;Content-Length 11&quot;+System.lineSeparator()).getBytes());
+                        out.write((System.lineSeparator()).getBytes());
+                        out.write(&quot;hello world&quot;.getBytes());
+                        out.flush();
                     } catch (IOException e) {
                         e.printStackTrace();
                     }finally {
@@ -202,85 +213,18 @@
     }
 }
 </code></pre>
-<p>在新的代码中,客户端的代码与之前没有改动,主要是服务端的优化,服务端主要是优化了哪部分呢?</p>
-<p>首先,我们在服务端加了一个线程池<code>private static ExecutorService executorService = Executors.newCachedThreadPool()</code>,这个线程池主要用来干什么呢?主要是用来在接收到客户端的请求之后,将打印客户端请求内容的工作交给了线程池来做</p>
-<pre><code class="language-java">// 接收到新连接之后,通过线程池开启新线程去打印客户端的请求
-executorService.execute(() -&gt;{
-    InputStream input;
-    BufferedReader reader;
-    try {
-        input = request.getInputStream();
-        reader = new BufferedReader(new InputStreamReader(input, &quot;utf-8&quot;));
-        String msg;
-        // 在这里,如果reader.readLine没有数据,也会被阻塞
-        while ((msg = reader.readLine()) != null) {
-            if (StringUtils.isEmpty(msg)){
-                break;
-            }
-            System.out.println(String.format(&quot;收到来自%s的数据,数据内容为:&quot;, request.toString()));
-            System.out.println(msg);
-        }
-    } catch (IOException e) {
-        e.printStackTrace();
-    }finally {
-        // 关闭请求
-        try {
-            request.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-});
+<p>这个代码与之前对比,只是添加了向客户端返回符合HTTP协议的一段代码</p>
+<pre><code class="language-java">// 收到请求后回复客户端
+OutputStream out = request.getOutputStream();
+out.write((&quot;HTTP/1.1 200 OK&quot;+System.lineSeparator()).getBytes());
+out.write((&quot;Content-Length 11&quot;+System.lineSeparator()).getBytes());
+out.write((System.lineSeparator()).getBytes());
+out.write(&quot;&lt;h1&gt;hello world&lt;/h1&gt;&quot;.getBytes());
+out.flush();
 </code></pre>
-<p>可以看到,接收到新连接之后,通过线程池开启新线程去打印客户端的请求.这样呢主线程可以继续接收下一个客户端的连接了,提高了服务器的处理效率,我们来看运行结果</p>
-<p>我们还是运行一个服务端和两个客户端来看效果</p>
-<p>首先启动一个服务端</p>
-<figure data-type="image" tabindex="1"><img src="https://sdivens.github.io/post-images/BIO%E9%98%BB%E5%A1%9E%E6%A8%A1%E5%BC%8F%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B(%E4%B8%AD)/image-20200321152449846.png" alt="image-20200321152449846" loading="lazy"></figure>
-<p>我们的服务端已经启动成功了,我们在启动客户端1</p>
-<figure data-type="image" tabindex="2"><img src="https://sdivens.github.io/post-images/BIO%E9%98%BB%E5%A1%9E%E6%A8%A1%E5%BC%8F%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B(%E4%B8%AD)/image-20200321152522744.png" alt="image-20200321152522744" loading="lazy"></figure>
-<p>客户端1已经启动起来了,最后启动客户端2</p>
-<figure data-type="image" tabindex="3"><img src="https://sdivens.github.io/post-images/BIO%E9%98%BB%E5%A1%9E%E6%A8%A1%E5%BC%8F%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B(%E4%B8%AD)/image-20200321152553299.png" alt="image-20200321152553299" loading="lazy"></figure>
-<p>现在一个服务端和2个客户端都已经启动起来了,我们在来看服务端有没有接收到这两个客户端</p>
-<blockquote>
-<p>在<a href="https://sdivens.github.io/post/net-bio-1">之前</a>的代码中,启动两个客户端后服务端只打印了一个客户端的信息,是因为在客户端1没有像服务端传输信息的情况下,被<code>reader.readLine()</code>这个代码阻塞住了,所以没有收到第二个客户端的请求</p>
-</blockquote>
-<figure data-type="image" tabindex="4"><img src="https://sdivens.github.io/post-images/BIO%E9%98%BB%E5%A1%9E%E6%A8%A1%E5%BC%8F%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B(%E4%B8%AD)/image-20200321154705695.png" alt="image-20200321154705695" loading="lazy"></figure>
-<p>我们可以看到在客户端没有向服务端发送请求的情况下服务端已经收到了2个客户端的请求</p>
-<p>现在通过客户端1发送一个请求试试</p>
-<figure data-type="image" tabindex="5"><img src="https://sdivens.github.io/post-images/BIO%E9%98%BB%E5%A1%9E%E6%A8%A1%E5%BC%8F%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B(%E4%B8%AD)/image-20200321154740627.png" alt="image-20200321154740627" loading="lazy"></figure>
-<p>可以看到服务端已经接受并打印了客户端1的请求</p>
-<p>再通过客户端2发送请求试一下</p>
-<figure data-type="image" tabindex="6"><img src="https://sdivens.github.io/post-images/BIO%E9%98%BB%E5%A1%9E%E6%A8%A1%E5%BC%8F%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B(%E4%B8%AD)/image-20200321154841307.png" alt="image-20200321154841307" loading="lazy"></figure>
-<p>同样,服务端也接收并打印了客户端2的请求</p>
-<h1 id="与优化前比较">与优化前比较</h1>
-<p>在<a href="https://sdivens.github.io/post/net-bio-1">之前</a>的文章中问过一个问题:过如果客户端1比客户端2先连上,但是客户端2先发送消息,然后再是客户端1发送信息,那么结果是什么?我们运行之前文章的代码,然后来看运行结果</p>
-<figure data-type="image" tabindex="7"><img src="https://sdivens.github.io/post-images/BIO%E9%98%BB%E5%A1%9E%E6%A8%A1%E5%BC%8F%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B(%E4%B8%AD)/image-20200321153655606.png" alt="image-20200321153655606" loading="lazy"></figure>
-<figure data-type="image" tabindex="8"><img src="https://sdivens.github.io/post-images/BIO%E9%98%BB%E5%A1%9E%E6%A8%A1%E5%BC%8F%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B(%E4%B8%AD)/image-20200321153707656.png" alt="image-20200321153707656" loading="lazy"></figure>
-<figure data-type="image" tabindex="9"><img src="https://sdivens.github.io/post-images/BIO%E9%98%BB%E5%A1%9E%E6%A8%A1%E5%BC%8F%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B(%E4%B8%AD)/image-20200321153719099.png" alt="image-20200321153719099" loading="lazy"></figure>
-<p>启动一个服务端和2个客户端,现在已经客户端1已经连接上了服务器端了</p>
-<figure data-type="image" tabindex="10"><img src="https://sdivens.github.io/post-images/BIO%E9%98%BB%E5%A1%9E%E6%A8%A1%E5%BC%8F%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B(%E4%B8%AD)/image-20200321153757656.png" alt="image-20200321153757656" loading="lazy"></figure>
-<p>这个时候如果客户端1发送消息的话结果大家已经知道了,现在我们先通过客户端2来发送信息,来看看结果如何</p>
-<figure data-type="image" tabindex="11"><img src="https://sdivens.github.io/post-images/BIO%E9%98%BB%E5%A1%9E%E6%A8%A1%E5%BC%8F%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B(%E4%B8%AD)/image-20200321153912883.png" alt="image-20200321153912883" loading="lazy"></figure>
-<p>我们看到客户端2的信息已经发送了,那么服务端有没有接收到呢?难道数据丢失了吗?</p>
-<figure data-type="image" tabindex="12"><img src="https://sdivens.github.io/post-images/BIO%E9%98%BB%E5%A1%9E%E6%A8%A1%E5%BC%8F%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B(%E4%B8%AD)/image-20200321153941880.png" alt="image-20200321153941880" loading="lazy"></figure>
-<p>???信息呢?没有接收到吗?我们再通过客户端1发送一条信息试试</p>
-<figure data-type="image" tabindex="13"><img src="https://sdivens.github.io/post-images/BIO%E9%98%BB%E5%A1%9E%E6%A8%A1%E5%BC%8F%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B(%E4%B8%AD)/image-20200321154117001.png" alt="image-20200321154117001" loading="lazy"></figure>
-<p>我买可以看到数据并没有丢失,但是客户端2的消息是在客户端1处理完成之后再处理的</p>
-<p>我们再在今天优化过后的代码中试一下</p>
-<p>同样,我们启动一个服务端和2个客户端,现在都已经启动好了</p>
-<figure data-type="image" tabindex="14"><img src="https://sdivens.github.io/post-images/BIO%E9%98%BB%E5%A1%9E%E6%A8%A1%E5%BC%8F%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B(%E4%B8%AD)/image-20200321155206721.png" alt="image-20200321155206721" loading="lazy"></figure>
-<p>我们先通过客户端2发送请求,客户端2是<code>port=62274</code>的请求端</p>
-<figure data-type="image" tabindex="15"><img src="https://sdivens.github.io/post-images/BIO%E9%98%BB%E5%A1%9E%E6%A8%A1%E5%BC%8F%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B(%E4%B8%AD)/image-20200321155258089.png" alt="image-20200321155258089" loading="lazy"></figure>
-<p>我们可以看到,客户端2的内容直接被打印了,并没有等待客户端1处理完成,所以这个比之前的代码性能更优,我们再通过客户端1发送请求</p>
-<figure data-type="image" tabindex="16"><img src="https://sdivens.github.io/post-images/BIO%E9%98%BB%E5%A1%9E%E6%A8%A1%E5%BC%8F%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B(%E4%B8%AD)/image-20200321155438893.png" alt="image-20200321155438893" loading="lazy"></figure>
-<p>同样可以被服务端打印输出</p>
-<h1 id="总结">总结</h1>
-<p>最后总结一下,我们通过在原来代码的基础上通过多线程的方式对原来的代码进行优化处理,成功的提升了服务端的处理性能</p>
-<h1 id="最后">最后</h1>
-<p>这个程序还可以继续优化吗?<br>
-当然.....可以,我们虽然用到了线程池提高了成功的处理能力,但是有大量请求来的时候,我们会开启很多的子线程,每一个子线程都会消耗系统资源,最重要的是,子线程并没有被有效的利用起来,而是在不断的阻塞等待客户端的输入,这样极大的浪费了系统的资源</p>
-<p>那么,又要如何优化呢?</p>
-<p>请看下回分解</p>
+<p>我们再启动浏览器看一下运行效果</p>
+<figure data-type="image" tabindex="5"><img src="https://sdivens.github.io/post-images/BIO%E9%98%BB%E5%A1%9E%E6%A8%A1%E5%BC%8F%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B%E4%B9%8BHTTP%E5%8D%8F%E8%AE%AE/image-20200321170120669.png" alt="image-20200321170120669" loading="lazy"></figure>
+<p>我们可以看到浏览器中成功的显示了服务器端的返回</p>
 
         </div>
 
@@ -297,21 +241,12 @@ executorService.execute(() -&gt;{
 
         <div class="flex justify-between py-8">
           
-            <div class="prev-post">
-              <a href="https://sdivens.github.io/post/net-bio-http/">
-                <h3 class="post-title">
-                  <i class="ri-arrow-left-line"></i>
-                  BIO阻塞模式网络编程之HTTP协议
-                </h3>
-              </a>
-            </div>
-          
 
           
             <div class="next-post">
-              <a href="https://sdivens.github.io/post/net-bio-1/">
+              <a href="https://sdivens.github.io/post/net-bio-2/">
                 <h3 class="post-title">
-                  BIO阻塞模式网络编程(上)
+                  BIO阻塞模式网络编程(中)
                   <i class="ri-arrow-right-line"></i>
                 </h3>
               </a>
