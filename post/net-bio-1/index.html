@@ -1,0 +1,397 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Gridea</title>
+<meta name="description" content="温故而知新" />
+<link rel="shortcut icon" href="https://sdivens.github.io/favicon.ico?v=1584774336305">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.7.2/animate.min.css">
+
+<link rel="stylesheet" href="https://sdivens.github.io/styles/main.css">
+
+
+
+  </head>
+  <body>
+    <div id="app" class="main px-4 flex flex-col lg:flex-row">
+      <div id="sidebar" class="sidebar-wrapper lg:static lg:w-1/4">
+  <div class="lg:sticky top-0">
+    <div class="sidebar-content">
+      <div class="flex lg:block p-4 lg:px-0 items-center fixed lg:static lg:block top-0 right-0 left-0 bg-white z-50">
+        <i class="ri-menu-2-line lg:mt-4 text-2xl cursor-pointer animated fadeIn" onclick="openMenu()"></i>
+        <a href="https://sdivens.github.io">
+          <img class="animated fadeInLeft avatar rounded-lg mx-4 lg:mt-32 lg:mx-0 mt-0 lg:w-24 lg:h-24 w-12 w-12" src="https://sdivens.github.io/images/avatar.png?v=1584774336305" alt="">
+        </a>
+        <h1 class="animated fadeInLeft lg:text-4xl font-extrabold lg:mt-8 mt-0 text-xl" style="animation-delay: 0.2s">Gridea</h1>
+      </div>
+      
+        <div class="animated fadeInLeft" style="animation-delay: 0.4s">
+          <p class="my-4 text-gray-600 font-light hidden lg:block">
+            文章目录
+          </p>
+          <div class="toc-container hidden lg:block">
+            <ul class="markdownIt-TOC">
+<li><a href="#%E6%A6%82%E5%BF%B5">概念</a></li>
+</ul>
+
+          </div>
+        </div>
+      
+    </div>
+  </div>
+</div>
+
+<div class="menu-container">
+  <i class="ri-arrow-left-line text-2xl cursor-pointer animated fadeIn close-menu-btn" onclick="closeMenu()"></i>
+  <div>
+    
+      
+        <a href="/" class="menu" style="animation-delay: 0s">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu" style="animation-delay: 0.2s">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu" style="animation-delay: 0.4s">
+          标签
+        </a>
+      
+    
+      
+        <a href="/post/about" class="menu" style="animation-delay: 0.6000000000000001s">
+          关于
+        </a>
+      
+    
+  </div>
+  <div class="site-footer">
+    <div class="py-4 text-gray-700">Powered by <a href="https://github.com/getgridea/gridea" target="_blank">Gridea</a></div>
+    <a class="rss" href="https://sdivens.github.io/atom.xml" target="_blank">RSS</a>
+  </div>
+</div>
+<div class="mask" onclick="closeMenu()">
+</div>
+      <div class="content-wrapper py-32 lg:p-8 lg:w-3/4 post-detail animated fadeIn">
+        <h1 class="text-3xl font-bold lg:mt-16">BIO阻塞模式网络编程(上)</h1>
+        <div class="text-sm text-gray-700 lg:my-8">
+          2020-03-21 / 6 min read
+        </div>
+        
+          <img class="post-feature-image rounded-lg mx-auto my-4" src="https://sdivens.github.io/post-images/net-bio-1.jpg" alt="">
+        
+        <div class="post-content yue">
+          <p>欢迎来到java网络知识的世界</p>
+<p>让我们一起学习,研究java高并发网络编程的知识吧</p>
+<!-- more -->
+<p><a href="https://sdivens.github.io/post/internet-tcpandudp">上次</a>我们介绍了TCP和UDP以及Socket编程的一些知识,那么java中如何使用socket进行网络编程呢?今天介绍一个java中进行网络编程的方式:<strong>BIO阻塞模式网络编程</strong></p>
+<h1 id="概念">概念</h1>
+<p><strong>BIO阻塞模式网络编程</strong>从名字上可以看这是一种阻塞方式的网络编程,BIO指的是blocking-io,是java中提供的一种网络编程方式,那么这种BIO阻塞模式网络编程如何使用呢?我们主要是通过以两个类来实现</p>
+<ol>
+<li>ServerSocket(服务端)</li>
+<li>Socket(客户端)</li>
+</ol>
+<p>来我们看代码</p>
+<pre><code class="language-java">public class BIODemo {
+    static class BIOServer{
+        public static void main(String[] args) {
+            // 启动服务
+            ServerSocket server;
+            try {
+                 server = new ServerSocket(8080);
+            } catch (IOException e) {
+                e.printStackTrace();
+                return;
+            }
+            System.out.println(&quot;服务启动成功&quot;);
+
+            // 如果服务没有关闭,则不断接受新的客户端连接
+            while (!server.isClosed()) {
+                Socket request;
+                try {
+                    // accept是一个阻塞方法,会如果没有新的连接,会一直在这行等着
+                    request = server.accept();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    continue;
+                }
+                System.out.println(&quot;收到新连接: &quot;+request.toString());
+                // 收到连接后打印请求数据
+                InputStream input;
+                BufferedReader reader;
+                try {
+                    input = request.getInputStream();
+                    reader = new BufferedReader(new InputStreamReader(input, &quot;utf-8&quot;));
+                    String msg;
+                    // 在这里,如果reader.readLine没有数据,也会被阻塞
+                    while ((msg = reader.readLine()) != null) {
+                        if (StringUtils.isEmpty(msg)){
+                            break;
+                        }
+                        System.out.println(String.format(&quot;收到来自%s的数据,数据内容为:&quot;, request.toString()));
+                        System.out.println(msg);
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    continue;
+                }finally {
+                    // 关闭请求
+                    try {
+                        request.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+            // 关闭服务
+            try {
+                server.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    static class BIOClient{
+        public static void main(String[] args) {
+            // 创建客户端连接到服务器的8080端口
+            Socket socket;
+            try {
+                 socket= new Socket(&quot;localhost&quot;, 8080);
+            } catch (IOException e) {
+                e.printStackTrace();
+                return;
+            }
+
+            // 向服务器传输信息
+            OutputStream outputStream;
+            try {
+                outputStream = socket.getOutputStream();
+            } catch (IOException e) {
+                e.printStackTrace();
+                return;
+            }
+            Scanner scanner = new Scanner(System.in);
+            System.out.println(&quot;请输入要向服务器传输的信息:&quot;);
+            String msg = scanner.nextLine();
+            try {
+                // write方法会一直阻塞,知道msg的内容写完了为止,所以如果msg的内容很多,会一直阻塞在这
+                outputStream.write(msg.getBytes());
+            } catch (IOException e) {
+                e.printStackTrace();
+                return;
+            }
+            // 关闭scanner
+            scanner.close();
+            try {
+                // 关闭客户端连接
+                socket.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+}
+</code></pre>
+<p>在这里我们定义了一个服务端<code>BIOServer</code>和一个客户端<code>BIOClient</code>两个类,首先是通过<code>new ServerSocket(8080);</code>来启动服务和绑定端口8080,然后可以通过<code>server.accept();</code>来接收客户端的请求,注意,<strong><code>server.accept()</code>是阻塞方法</strong>,如果没有请求,会一直阻塞在这行.当客户端发来请求之后,我们可以获取客户端向服务端发送的内容并打印出来</p>
+<pre><code class="language-java">input = request.getInputStream();
+reader = new BufferedReader(new InputStreamReader(input, &quot;utf-8&quot;));
+String msg;
+// 在这里,如果reader.readLine没有数据,也会被阻塞
+while ((msg = reader.readLine()) != null) {
+    if (StringUtils.isEmpty(msg)){
+        break;
+    }
+    System.out.println(String.format(&quot;收到来自%s的数据,数据内容为:&quot;, request.toString()));
+    System.out.println(msg);
+}
+</code></pre>
+<p>这部分代码就是获取并打印客户端的请求数据,其中<code>reader.readLine()</code>也是<strong>阻塞方法</strong>,如果没有获取到客户端的发送内容,会一直阻塞在这里,我们可以来运行一下,看一下结果</p>
+<p>我们启动一个服务器,然后启动两个客户端</p>
+<p>先启动服务器</p>
+<figure data-type="image" tabindex="1"><img src="https://sdivens.github.io/post-images/BIO%E9%98%BB%E5%A1%9E%E6%A8%A1%E5%BC%8F%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B/image-20200321144735530.png" alt="image-20200321144735530" loading="lazy"></figure>
+<p>好,服务器已经启动成功了,我们在启动客户端1</p>
+<figure data-type="image" tabindex="2"><img src="https://sdivens.github.io/post-images/BIO%E9%98%BB%E5%A1%9E%E6%A8%A1%E5%BC%8F%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B/image-20200321144813149.png" alt="image-20200321144813149" loading="lazy"></figure>
+<p>再启动客户端2</p>
+<figure data-type="image" tabindex="3"><img src="https://sdivens.github.io/post-images/BIO%E9%98%BB%E5%A1%9E%E6%A8%A1%E5%BC%8F%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B/image-20200321144832983.png" alt="image-20200321144832983" loading="lazy"></figure>
+<p>现在我们看到我们已经启动了一个服务器和两个客户端程序,我们在来看服务器端有没有收到客户端的两个请求</p>
+<figure data-type="image" tabindex="4"><img src="https://sdivens.github.io/post-images/BIO%E9%98%BB%E5%A1%9E%E6%A8%A1%E5%BC%8F%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B/image-20200321144924393.png" alt="image-20200321144924393" loading="lazy"></figure>
+<p>我们可以看到服务器上已经收到了客户端的请求,但是为什么只有一个请求呢?客户端2的请求在哪?</p>
+<p>不要着急,还记得之前说过<code>reader.readLine()</code>这个方法也是一个阻塞方法吗?我们的代码中收到一个请求之后,再打印客户发送的请求,现在客户端1连上了服务器,但是没有发送请求过来,所以服务端现在被阻塞在了<code>reader.readLine()</code>这一行代码这个地方,我们现在只需要通过客户端1像服务器发送一条消息,服务器就可以打印这条信息后然后循环接收下一个客户端连接,我们来试一下</p>
+<figure data-type="image" tabindex="5"><img src="https://sdivens.github.io/post-images/BIO%E9%98%BB%E5%A1%9E%E6%A8%A1%E5%BC%8F%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B/image-20200321145331570.png" alt="image-20200321145331570" loading="lazy"></figure>
+<p>我们通过客户端1向服务器发送了一条<em>客户端1</em>的内容,然后我们再看服务器端有没有收到这条消息,以及收到消息后有没有收到客户端2的连接</p>
+<figure data-type="image" tabindex="6"><img src="https://sdivens.github.io/post-images/BIO%E9%98%BB%E5%A1%9E%E6%A8%A1%E5%BC%8F%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B/image-20200321145450624.png" alt="image-20200321145450624" loading="lazy"></figure>
+<p>果然,我们可以看到服务器端接收了客户端1的请求,并且打印了请求内容,而且服务器也成功接收到了第二个客户端的请求,现在我们通过客户端2再向服务器发送一条信息.</p>
+<figure data-type="image" tabindex="7"><img src="https://sdivens.github.io/post-images/BIO%E9%98%BB%E5%A1%9E%E6%A8%A1%E5%BC%8F%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B/image-20200321145623420.png" alt="image-20200321145623420" loading="lazy"></figure>
+<p>客户端2向服务器发送请求之后,我们在看服务器有没有收到消息</p>
+<figure data-type="image" tabindex="8"><img src="https://sdivens.github.io/post-images/BIO%E9%98%BB%E5%A1%9E%E6%A8%A1%E5%BC%8F%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B/image-20200321145708756.png" alt="image-20200321145708756" loading="lazy"></figure>
+<p>我们可以看到服务器已经成功接收到了客户端2发送的请求</p>
+<p>好了,以上就是java中BIO阻塞网络编程的基础使用方法了,但是这种方式有很大的弊端,相信很多人都已经知道了,那就是性能问题,服务器一次只能请求一个客户端的请求,如果一个请求耗时比较多的话,其他的请求会都阻塞等待.那么有什么办法可以优化这个代码呢?提示一下:可以使用多线程的方式优化这段代码,如何采用多线程的方式优化这段代码呢?请看下回分解</p>
+
+        </div>
+
+        
+          <a class="animated fadeInUp p-2 items-center text-sm text-gray-700 border hover:bg-gray-300 leading-none rounded-full flex lg:inline-flex m-4 " href="https://sdivens.github.io/tag/Gbbwj9l1d/">
+            <span class="flex-auto">网络编程</span>
+          </a>
+        
+          <a class="animated fadeInUp p-2 items-center text-sm text-gray-700 border hover:bg-gray-300 leading-none rounded-full flex lg:inline-flex m-4 " href="https://sdivens.github.io/tag/F6g2TY-sw/">
+            <span class="flex-auto">java</span>
+          </a>
+        
+
+
+        <div class="flex justify-between py-8">
+          
+
+          
+            <div class="next-post">
+              <a href="https://sdivens.github.io/post/thread-notice/">
+                <h3 class="post-title">
+                  线程通信
+                  <i class="ri-arrow-right-line"></i>
+                </h3>
+              </a>
+            </div>
+          
+        </div>
+
+        
+          
+            <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+<script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+
+<div id="gitalk-container"></div>
+
+<script>
+
+  var gitalk = new Gitalk({
+    clientID: 'ada3a2adfeb6257b7b99',
+    clientSecret: 'd0ab2be6b4f65d5a43127faf0fdf94ac250532a1',
+    repo: 'sdivens.github.io',
+    owner: 'sdivens',
+    admin: ['sdivens'],
+    id: (location.pathname).substring(0, 49),      // Ensure uniqueness and length less than 50
+    distractionFreeMode: false  // Facebook-like distraction free mode
+  })
+
+  gitalk.render('gitalk-container')
+
+</script>
+
+          
+
+          
+        
+
+      </div>
+    </div>
+
+    <script src="https://sdivens.github.io/media/prism.js"></script>  
+<script>
+
+Prism.highlightAll()
+let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+// This should probably be throttled.
+// Especially because it triggers during smooth scrolling.
+// https://lodash.com/docs/4.17.10#throttle
+// You could do like...
+// window.addEventListener("scroll", () => {
+//    _.throttle(doThatStuff, 100);
+// });
+// Only not doing it here to keep this Pen dependency-free.
+
+window.addEventListener("scroll", event => {
+  let fromTop = window.scrollY;
+
+  mainNavLinks.forEach((link, index) => {
+    let section = document.getElementById(decodeURI(link.hash).substring(1));
+    let nextSection = null
+    if (mainNavLinks[index + 1]) {
+      nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+    }
+    if (section.offsetTop <= fromTop) {
+      if (nextSection) {
+        if (nextSection.offsetTop > fromTop) {
+          link.classList.add("current");
+        } else {
+          link.classList.remove("current");    
+        }
+      } else {
+        link.classList.add("current");
+      }
+    } else {
+      link.classList.remove("current");
+    }
+  });
+});
+
+
+document.addEventListener("DOMContentLoaded", function() {
+  var lazyImages = [].slice.call(document.querySelectorAll(".post-feature-image.lazy"));
+
+  if ("IntersectionObserver" in window) {
+    let lazyImageObserver = new IntersectionObserver(function(entries, observer) {
+      entries.forEach(function(entry) {
+        if (entry.isIntersecting) {
+          let lazyImage = entry.target
+          lazyImage.style.backgroundImage = `url(${lazyImage.dataset.bg})`
+          lazyImage.classList.remove("lazy")
+          lazyImageObserver.unobserve(lazyImage)
+        }
+      });
+    });
+
+    lazyImages.forEach(function(lazyImage) {
+      lazyImageObserver.observe(lazyImage)
+    })
+  } else {
+    // Possibly fall back to a more compatible method here
+  }
+});
+
+const menuContainer = document.querySelector('.menu-container')
+const menus = document.querySelectorAll('.menu-container .menu')
+const mask = document.querySelector('.mask')
+const contentWrapper = document.querySelector('.content-wrapper')
+const latestArticle = document.querySelector('.latest-article')
+const readMore = document.querySelector('.read-more')
+const indexPage = document.querySelector('.index-page')
+
+const isHome = location.pathname === '/'
+if (latestArticle) {
+  latestArticle.style.display = isHome ? 'block' : 'none'
+  readMore.style.display = isHome ? 'block' : 'none'
+  indexPage.style.display = isHome ? 'none' : 'block'
+}
+
+const openMenu = () => {
+  menuContainer.classList.add('open')
+  menus.forEach(menu => {
+    menu.classList.add('animated', 'fadeInLeft')
+  })
+  mask.classList.add('open')
+  contentWrapper.classList.add('is-second')
+}
+
+const closeMenu = () => {
+  menuContainer.classList.remove('open')
+  menus.forEach(menu => {
+    menu.classList.remove('animated', 'fadeInLeft')
+  })
+  mask.classList.remove('open')
+  contentWrapper.classList.remove('is-second')
+}
+</script>
+  
+  </body>
+</html>

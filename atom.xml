@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://sdivens.github.io</id>
     <title>Gridea</title>
-    <updated>2020-03-20T08:02:35.230Z</updated>
+    <updated>2020-03-21T07:14:41.007Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://sdivens.github.io"/>
     <link rel="self" href="https://sdivens.github.io/atom.xml"/>
@@ -10,6 +10,163 @@
     <logo>https://sdivens.github.io/images/avatar.png</logo>
     <icon>https://sdivens.github.io/favicon.ico</icon>
     <rights>All rights reserved 2020, Gridea</rights>
+    <entry>
+        <title type="html"><![CDATA[BIO阻塞模式网络编程(上)]]></title>
+        <id>https://sdivens.github.io/post/net-bio-1/</id>
+        <link href="https://sdivens.github.io/post/net-bio-1/">
+        </link>
+        <updated>2020-03-21T07:01:39.000Z</updated>
+        <summary type="html"><![CDATA[<p>欢迎来到java网络知识的世界</p>
+<p>让我们一起学习,研究java高并发网络编程的知识吧</p>
+]]></summary>
+        <content type="html"><![CDATA[<p>欢迎来到java网络知识的世界</p>
+<p>让我们一起学习,研究java高并发网络编程的知识吧</p>
+<!-- more -->
+<p><a href="https://sdivens.github.io/post/internet-tcpandudp">上次</a>我们介绍了TCP和UDP以及Socket编程的一些知识,那么java中如何使用socket进行网络编程呢?今天介绍一个java中进行网络编程的方式:<strong>BIO阻塞模式网络编程</strong></p>
+<h1 id="概念">概念</h1>
+<p><strong>BIO阻塞模式网络编程</strong>从名字上可以看这是一种阻塞方式的网络编程,BIO指的是blocking-io,是java中提供的一种网络编程方式,那么这种BIO阻塞模式网络编程如何使用呢?我们主要是通过以两个类来实现</p>
+<ol>
+<li>ServerSocket(服务端)</li>
+<li>Socket(客户端)</li>
+</ol>
+<p>来我们看代码</p>
+<pre><code class="language-java">public class BIODemo {
+    static class BIOServer{
+        public static void main(String[] args) {
+            // 启动服务
+            ServerSocket server;
+            try {
+                 server = new ServerSocket(8080);
+            } catch (IOException e) {
+                e.printStackTrace();
+                return;
+            }
+            System.out.println(&quot;服务启动成功&quot;);
+
+            // 如果服务没有关闭,则不断接受新的客户端连接
+            while (!server.isClosed()) {
+                Socket request;
+                try {
+                    // accept是一个阻塞方法,会如果没有新的连接,会一直在这行等着
+                    request = server.accept();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    continue;
+                }
+                System.out.println(&quot;收到新连接: &quot;+request.toString());
+                // 收到连接后打印请求数据
+                InputStream input;
+                BufferedReader reader;
+                try {
+                    input = request.getInputStream();
+                    reader = new BufferedReader(new InputStreamReader(input, &quot;utf-8&quot;));
+                    String msg;
+                    // 在这里,如果reader.readLine没有数据,也会被阻塞
+                    while ((msg = reader.readLine()) != null) {
+                        if (StringUtils.isEmpty(msg)){
+                            break;
+                        }
+                        System.out.println(String.format(&quot;收到来自%s的数据,数据内容为:&quot;, request.toString()));
+                        System.out.println(msg);
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    continue;
+                }finally {
+                    // 关闭请求
+                    try {
+                        request.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+            // 关闭服务
+            try {
+                server.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    static class BIOClient{
+        public static void main(String[] args) {
+            // 创建客户端连接到服务器的8080端口
+            Socket socket;
+            try {
+                 socket= new Socket(&quot;localhost&quot;, 8080);
+            } catch (IOException e) {
+                e.printStackTrace();
+                return;
+            }
+
+            // 向服务器传输信息
+            OutputStream outputStream;
+            try {
+                outputStream = socket.getOutputStream();
+            } catch (IOException e) {
+                e.printStackTrace();
+                return;
+            }
+            Scanner scanner = new Scanner(System.in);
+            System.out.println(&quot;请输入要向服务器传输的信息:&quot;);
+            String msg = scanner.nextLine();
+            try {
+                // write方法会一直阻塞,知道msg的内容写完了为止,所以如果msg的内容很多,会一直阻塞在这
+                outputStream.write(msg.getBytes());
+            } catch (IOException e) {
+                e.printStackTrace();
+                return;
+            }
+            // 关闭scanner
+            scanner.close();
+            try {
+                // 关闭客户端连接
+                socket.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+}
+</code></pre>
+<p>在这里我们定义了一个服务端<code>BIOServer</code>和一个客户端<code>BIOClient</code>两个类,首先是通过<code>new ServerSocket(8080);</code>来启动服务和绑定端口8080,然后可以通过<code>server.accept();</code>来接收客户端的请求,注意,<strong><code>server.accept()</code>是阻塞方法</strong>,如果没有请求,会一直阻塞在这行.当客户端发来请求之后,我们可以获取客户端向服务端发送的内容并打印出来</p>
+<pre><code class="language-java">input = request.getInputStream();
+reader = new BufferedReader(new InputStreamReader(input, &quot;utf-8&quot;));
+String msg;
+// 在这里,如果reader.readLine没有数据,也会被阻塞
+while ((msg = reader.readLine()) != null) {
+    if (StringUtils.isEmpty(msg)){
+        break;
+    }
+    System.out.println(String.format(&quot;收到来自%s的数据,数据内容为:&quot;, request.toString()));
+    System.out.println(msg);
+}
+</code></pre>
+<p>这部分代码就是获取并打印客户端的请求数据,其中<code>reader.readLine()</code>也是<strong>阻塞方法</strong>,如果没有获取到客户端的发送内容,会一直阻塞在这里,我们可以来运行一下,看一下结果</p>
+<p>我们启动一个服务器,然后启动两个客户端</p>
+<p>先启动服务器</p>
+<figure data-type="image" tabindex="1"><img src="https://sdivens.github.io/post-images/BIO%E9%98%BB%E5%A1%9E%E6%A8%A1%E5%BC%8F%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B/image-20200321144735530.png" alt="image-20200321144735530" loading="lazy"></figure>
+<p>好,服务器已经启动成功了,我们在启动客户端1</p>
+<figure data-type="image" tabindex="2"><img src="https://sdivens.github.io/post-images/BIO%E9%98%BB%E5%A1%9E%E6%A8%A1%E5%BC%8F%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B/image-20200321144813149.png" alt="image-20200321144813149" loading="lazy"></figure>
+<p>再启动客户端2</p>
+<figure data-type="image" tabindex="3"><img src="https://sdivens.github.io/post-images/BIO%E9%98%BB%E5%A1%9E%E6%A8%A1%E5%BC%8F%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B/image-20200321144832983.png" alt="image-20200321144832983" loading="lazy"></figure>
+<p>现在我们看到我们已经启动了一个服务器和两个客户端程序,我们在来看服务器端有没有收到客户端的两个请求</p>
+<figure data-type="image" tabindex="4"><img src="https://sdivens.github.io/post-images/BIO%E9%98%BB%E5%A1%9E%E6%A8%A1%E5%BC%8F%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B/image-20200321144924393.png" alt="image-20200321144924393" loading="lazy"></figure>
+<p>我们可以看到服务器上已经收到了客户端的请求,但是为什么只有一个请求呢?客户端2的请求在哪?</p>
+<p>不要着急,还记得之前说过<code>reader.readLine()</code>这个方法也是一个阻塞方法吗?我们的代码中收到一个请求之后,再打印客户发送的请求,现在客户端1连上了服务器,但是没有发送请求过来,所以服务端现在被阻塞在了<code>reader.readLine()</code>这一行代码这个地方,我们现在只需要通过客户端1像服务器发送一条消息,服务器就可以打印这条信息后然后循环接收下一个客户端连接,我们来试一下</p>
+<figure data-type="image" tabindex="5"><img src="https://sdivens.github.io/post-images/BIO%E9%98%BB%E5%A1%9E%E6%A8%A1%E5%BC%8F%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B/image-20200321145331570.png" alt="image-20200321145331570" loading="lazy"></figure>
+<p>我们通过客户端1向服务器发送了一条<em>客户端1</em>的内容,然后我们再看服务器端有没有收到这条消息,以及收到消息后有没有收到客户端2的连接</p>
+<figure data-type="image" tabindex="6"><img src="https://sdivens.github.io/post-images/BIO%E9%98%BB%E5%A1%9E%E6%A8%A1%E5%BC%8F%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B/image-20200321145450624.png" alt="image-20200321145450624" loading="lazy"></figure>
+<p>果然,我们可以看到服务器端接收了客户端1的请求,并且打印了请求内容,而且服务器也成功接收到了第二个客户端的请求,现在我们通过客户端2再向服务器发送一条信息.</p>
+<figure data-type="image" tabindex="7"><img src="https://sdivens.github.io/post-images/BIO%E9%98%BB%E5%A1%9E%E6%A8%A1%E5%BC%8F%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B/image-20200321145623420.png" alt="image-20200321145623420" loading="lazy"></figure>
+<p>客户端2向服务器发送请求之后,我们在看服务器有没有收到消息</p>
+<figure data-type="image" tabindex="8"><img src="https://sdivens.github.io/post-images/BIO%E9%98%BB%E5%A1%9E%E6%A8%A1%E5%BC%8F%E7%BD%91%E7%BB%9C%E7%BC%96%E7%A8%8B/image-20200321145708756.png" alt="image-20200321145708756" loading="lazy"></figure>
+<p>我们可以看到服务器已经成功接收到了客户端2发送的请求</p>
+<p>好了,以上就是java中BIO阻塞网络编程的基础使用方法了,但是这种方式有很大的弊端,相信很多人都已经知道了,那就是性能问题,服务器一次只能请求一个客户端的请求,如果一个请求耗时比较多的话,其他的请求会都阻塞等待.那么有什么办法可以优化这个代码呢?提示一下:可以使用多线程的方式优化这段代码,如何采用多线程的方式优化这段代码呢?请看下回分解</p>
+]]></content>
+    </entry>
     <entry>
         <title type="html"><![CDATA[线程通信]]></title>
         <id>https://sdivens.github.io/post/thread-notice/</id>
@@ -692,6 +849,7 @@ public class Demo4 extends Thread {
 <hr>
 <h1 id="高并发网络编程">高并发网络编程</h1>
 <h2 id="tcpudp协议"><a href="https://sdivens.github.io/post/internet-tcpandudp">TCP&amp;UDP协议</a></h2>
+<h2 id="bio阻塞模式网络编程上"><a href="https://sdivens.github.io/post/net-bio-1">BIO阻塞模式网络编程(上)</a></h2>
 ]]></content>
     </entry>
     <entry>
